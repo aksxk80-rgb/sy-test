@@ -18,6 +18,8 @@ async function loadScoreboard() {
       .map(r => r.replace(/^\uFEFF/, "").trim())
       .filter(r => r.replace(/,/g, "").trim() !== "");
 
+    console.log("rows:", rows);
+
     // 헤더
     const header = rows[0].split(",");
 
