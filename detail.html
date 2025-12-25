@@ -83,10 +83,8 @@
           const number = row[2];
           const name = row[3];
 
-          // 팀명 있는 줄이면 업데이트
           if (teamName) currentTeam = teamName;
 
-          // 팀명 비교 (공백/줄바꿈 제거)
           if (
             currentTeam.replace(/\s+/g, "") ===
             teamParam.replace(/\s+/g, "")
@@ -100,8 +98,15 @@
           return;
         }
 
-        // 팀합산은 23번 컬럼
-        const teamTotal = teamRows[0][23];
+        // ⭐ 자동 인식: 총점은 마지막에서 두 번째 컬럼
+        const totalIndex = teamRows[0].length - 2;
+
+        // ⭐ 자동 인식: 섹터는 4번부터 총점 바로 전까지
+        const sectorStart = 4;
+        const sectorCount = totalIndex - sectorStart;
+
+        // 팀합산은 마지막 컬럼
+        const teamTotal = teamRows[0][teamRows[0].length - 1];
         document.getElementById("teamTotal").innerText = "팀 총합: " + teamTotal;
 
         // 표 만들기
@@ -111,7 +116,12 @@
         const headRow = document.createElement("tr");
 
         const headers = ["참가자", "번호"];
-        for (let i = 1; i <= 18; i++) headers.push(i + "섹터");
+
+        // ⭐ 섹터 헤더 자동 생성
+        for (let i = 1; i <= sectorCount; i++) {
+          headers.push(i + "섹터");
+        }
+
         headers.push("총점");
 
         headers.forEach(h => {
@@ -131,9 +141,9 @@
           const name = row[3];
           const number = row[2];
 
-          const total = row[22]; // 총점
+          const total = row[totalIndex];
 
-          const sectors = row.slice(4, 22); // 18개 섹터
+          const sectors = row.slice(sectorStart, totalIndex);
 
           const cells = [name, number, ...sectors, total];
 
