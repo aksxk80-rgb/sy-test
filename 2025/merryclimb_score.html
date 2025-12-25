@@ -252,7 +252,7 @@ const dataRows = rows.slice(3).map(r => r.split(","));  // 4번째 줄부터 데
           card.appendChild(left);
           card.appendChild(right);
           boardEl.appendChild(card);
-      } catch (err) {
+      catch (err) {
   statusEl.textContent = "오류 발생: " + err.message;
 }
     }
