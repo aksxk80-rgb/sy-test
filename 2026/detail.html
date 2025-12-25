@@ -57,8 +57,9 @@
     const urlParams = new URLSearchParams(window.location.search);
     const teamParam = urlParams.get("team");
 
+    // ⭐ 반드시 문자열로 선언해야 함
     const CSV_URL =
-      https://docs.google.com/spreadsheets/d/1EyTd9ypfTUPwYxQECAtvFZWsE87-FBG2ef6I3cDoc2o/export?format=csv&gid=28014312 ;
+      "https://docs.google.com/spreadsheets/d/1EyTd9ypfTUPwYxQECAtvFZWsE87-FBG2ef6I3cDoc2o/export?format=csv&gid=28014312";
 
     document.getElementById("teamName").innerText = teamParam + " 팀 상세 정보";
 
@@ -67,19 +68,30 @@
         const res = await fetch(CSV_URL);
         const text = await res.text();
 
-        const rows = text
+        // 줄 나누기 + 공백 제거
+        let rows = text
+          .replace(/\r\n/g, "\n")
+          .replace(/\r/g, "\n")
           .split("\n")
+          .map(r => r.trim())
+          .filter(r => r !== "")
           .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
+
+        // ⭐ detail CSV도 test CSV처럼 앞에 빈 줄 2개 있음
+        // rows[0] = 빈 줄 제거됨
+        // rows[1] = 빈 줄 제거됨
+        // rows[2] = 헤더
+        // rows[3] = 데이터 시작
+        const header = rows[2];
+        const dataRows = rows.slice(3);
 
         let teamRows = [];
         let currentTeam = "";
 
-        // CSV는 4번째 줄(인덱스 3)부터 데이터 시작
-        for (let i = 3; i < rows.length; i++) {
-          const row = rows[i];
+        for (let row of dataRows) {
           if (!row || row.length < 5) continue;
 
-          const teamName = row[1] ? row[1].trim() : "";
+          const teamName = row[1]?.trim() || "";
           const number = row[2];
           const name = row[3];
 
@@ -94,22 +106,24 @@
         }
 
         if (teamRows.length === 0) {
-          document.getElementById("status").innerText = "해당 팀 데이터를 찾을 수 없습니다.";
+          document.getElementById("status").innerText =
+            "해당 팀 데이터를 찾을 수 없습니다.";
           return;
         }
 
-        // ⭐ 자동 인식: 총점은 마지막에서 두 번째 컬럼
+        // ⭐ 총점은 마지막에서 두 번째 컬럼
         const totalIndex = teamRows[0].length - 2;
 
-        // ⭐ 자동 인식: 섹터는 4번부터 총점 바로 전까지
+        // ⭐ 섹터는 4번부터 총점 바로 전까지
         const sectorStart = 4;
         const sectorCount = totalIndex - sectorStart;
 
-        // 팀합산은 마지막 컬럼
+        // 팀 총합은 마지막 컬럼
         const teamTotal = teamRows[0][teamRows[0].length - 1];
-        document.getElementById("teamTotal").innerText = "팀 총합: " + teamTotal;
+        document.getElementById("teamTotal").innerText =
+          "팀 총합: " + teamTotal;
 
-        // 표 만들기
+        // 표 생성
         const table = document.createElement("table");
 
         const thead = document.createElement("thead");
@@ -117,7 +131,6 @@
 
         const headers = ["참가자", "번호"];
 
-        // ⭐ 섹터 헤더 자동 생성
         for (let i = 1; i <= sectorCount; i++) {
           headers.push(i + "섹터");
         }
@@ -140,9 +153,7 @@
 
           const name = row[3];
           const number = row[2];
-
           const total = row[totalIndex];
-
           const sectors = row.slice(sectorStart, totalIndex);
 
           const cells = [name, number, ...sectors, total];
