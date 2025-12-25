@@ -205,6 +205,11 @@
           const card = document.createElement("div");
           card.className = "card";
 
+            // ⭐ 팀 상세 페이지로 이동하는 클릭 이벤트 추가
+  card.onclick = () => {
+    window.location.href = `detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+  };
+
           const left = document.createElement("div");
           left.className = "card-left";
 
