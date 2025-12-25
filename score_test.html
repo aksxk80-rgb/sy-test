@@ -143,8 +143,7 @@
   </div>
 
   <script>
-    const CSV_URL =
-      "https://docs.google.com/spreadsheets/d/1CQOwFcg-lpUQ77ot8-6FhG4D6b4zxd6yo-bkpHjHetU/export?format=csv&gid=914454642";
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1CQOwFcg-lpUQ77ot8-6FhG4D6b4zxd6yo-bkpHjHetU/export?format=csv&gid=914454642";
 
     async function loadScoreboard() {
       const statusEl = document.getElementById("status");
@@ -154,14 +153,8 @@
         const res = await fetch(CSV_URL);
         const text = await res.text();
 
-        // 줄 단위로 나누고 완전 빈 줄 제거
-        let rows = text.split("\n").map(r => r.trim());
-        rows = rows.filter(r => r !== "");
-
-        // 첫 줄이 진짜 헤더
+        let rows = text.split("\n").map(r => r.trim()).filter(r => r !== "");
         const header = rows[0].split(",");
-
-        // 데이터 행
         const dataRows = rows.slice(1).map(r => r.split(","));
 
         const rankIdx = header.indexOf("팀 순위");
@@ -172,22 +165,19 @@
           throw new Error("필요한 컬럼을 찾을 수 없습니다.");
         }
 
-        let items = dataRows
-          .map(cols => {
-            const rank = cols[rankIdx]?.trim();
-            const name = cols[nameIdx]?.trim();
-            const total = cols[totalIdx]?.trim();
-            if (!rank || !name) return null;
-            return {
-              rank: Number(rank),
-              displayName: name,
-              teamKeyName: name,
-              score: total,
-              total
-            };
-          })
-          .filter(Boolean)
-          .sort((a, b) => a.rank - b.rank);
+        let items = dataRows.map(cols => {
+          const rank = cols[rankIdx]?.trim();
+          const name = cols[nameIdx]?.trim();
+          const total = cols[totalIdx]?.trim();
+          if (!rank || !name) return null;
+          return {
+            rank: Number(rank),
+            displayName: name,
+            teamKeyName: name,
+            score: total,
+            total
+          };
+        }).filter(Boolean).sort((a, b) => a.rank - b.rank);
 
         boardEl.innerHTML = "";
         statusEl.textContent = "";
@@ -217,7 +207,6 @@
 
           info.appendChild(nameEl);
           info.appendChild(subEl);
-
           left.appendChild(badge);
           left.appendChild(info);
 
