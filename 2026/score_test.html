@@ -52,7 +52,7 @@
       justify-content: space-between;
       box-shadow: 0 6px 12px rgba(0,0,0,0.35);
       border: 1px solid rgba(148,163,184,0.25);
-      cursor: pointer; /* ⭐ 클릭 가능 표시 */
+      cursor: pointer;
     }
     .card-left {
       display: flex;
@@ -144,7 +144,8 @@
   </div>
 
   <script>
-    https://docs.google.com/spreadsheets/d/1EyTd9ypfTUPwYxQECAtvFZWsE87-FBG2ef6I3cDoc2o/export?format=csv&gid=914454642 ;
+    const CSV_URL =
+      "https://docs.google.com/spreadsheets/d/1EyTd9ypfTUPwYxQECAtvFZWsE87-FBG2ef6I3cDoc2o/export?format=csv&gid=914454642";
 
     async function loadScoreboard() {
       const statusEl = document.getElementById("status");
@@ -161,6 +162,7 @@
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
+        // ⭐ test 시트 구조: 1행 = 헤더, 2행부터 데이터
         const header = rows[0].split(",");
         const dataRows = rows.slice(1).map(r => r.split(","));
 
@@ -171,8 +173,6 @@
         if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
           throw new Error("컬럼명을 찾을 수 없습니다.");
         }
-
-        const dataRows = rows.slice(1).map(r => r.split(","));
 
         let items = dataRows
           .map(cols => {
@@ -203,7 +203,6 @@
           const card = document.createElement("div");
           card.className = "card";
 
-          // ⭐ 클릭하면 detail 페이지로 이동
           card.onclick = () => {
             window.location.href = `detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
           };
