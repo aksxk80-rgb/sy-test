@@ -163,8 +163,8 @@
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
         // ⭐ test 시트 구조: 1행 = 헤더, 2행부터 데이터
-        const header = rows[2].split(",");
-const dataRows = rows.slice(3).map(r => r.split(","));
+        const header = rows[1].split(",");
+const dataRows = rows.slice(2).map(r => r.split(","));
 
         const rankIdx = header.findIndex(h => h.includes("팀 순위"));
         const nameIdx = header.findIndex(h => h.includes("팀명"));
