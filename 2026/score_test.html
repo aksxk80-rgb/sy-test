@@ -168,8 +168,8 @@
         // 0: 빈 줄
         // 1: 헤더
         // 2~: 데이터
-        const header = rows[1].split(",");
-        const dataRows = rows.slice(2).map(r => r.split(","));
+        const header = rows[0].split(",");
+        const dataRows = rows.slice(1).map(r => r.split(","));
 
         const rankIdx = header.findIndex(h => h.includes("팀 순위"));
         const nameIdx = header.findIndex(h => h.includes("팀명"));
