@@ -157,14 +157,13 @@
         const header = rows[0].split(",");
         const dataRows = rows.slice(1).map(r => r.split(","));
 
-        const rankIdx = header.indexOf("팀 순위");
-        const nameIdx = header.indexOf("팀명");
-        const totalIdx = header.indexOf("총점");
+        const rankIdx = header.findIndex(h => h.includes("팀 순위"));
+const nameIdx = header.findIndex(h => h.includes("팀명"));
+const totalIdx = header.findIndex(h => h.includes("총점"));
 
         if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
-          throw new Error("필요한 컬럼을 찾을 수 없습니다.");
-        }
-
+  throw new Error("컬럼명을 찾을 수 없습니다.");
+}
         let items = dataRows.map(cols => {
           const rank = cols[rankIdx]?.trim();
           const name = cols[nameIdx]?.trim();
