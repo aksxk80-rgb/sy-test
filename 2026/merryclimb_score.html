@@ -49,15 +49,92 @@
           .sort((a, b) => a.rank - b.rank);
 
         const boardEl = document.getElementById("board");
-        const statusEl = document.getElementById("status");
+       const statusEl = document.getElementById("status");
+  const boardEl = document.getElementById("board");
 
-        boardEl.innerHTML = "";
-        statusEl.textContent = "";
+  try {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
 
-        if (!items.length) {
-          statusEl.textContent = "표시할 데이터가 없습니다.";
-          return;
-        }
+    let rows = text
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .split("\n")
+      .map(r => r.replace(/^\uFEFF/, "").trim())
+      .filter(r => r !== "");
+
+    // ⭐ 1) 헤더가 있는 줄을 자동으로 찾기
+    const headerRow = rows.find(r => r.includes("팀 순위"));
+    if (!headerRow) {
+      statusEl.textContent = "헤더(팀 순위)를 찾을 수 없습니다.";
+      return;
+    }
+
+    const header = headerRow.split(",");
+
+    // ⭐ 2) 헤더 인덱스 자동 매칭
+    const rankIdx = header.findIndex(h => h.includes("팀 순위"));
+    const nameIdx = header.findIndex(h => h.includes("팀명"));
+    const totalIdx = header.findIndex(h => h.includes("총점"));
+
+    // ⭐ 3) 헤더 줄 이후의 데이터만 사용
+    const startIndex = rows.indexOf(headerRow) + 1;
+    const dataRows = rows.slice(startIndex).map(r => r.split(","));
+
+    let items = dataRows
+      .map(cols => {
+        const rank = cols[rankIdx]?.trim();
+        const name = cols[nameIdx]?.trim();
+        const total = cols[totalIdx]?.trim();
+        if (!rank || !name) return null;
+        return {
+          rank: Number(rank),
+          displayName: name,
+          teamKeyName: name,
+          total
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.rank - b.rank);
+
+    boardEl.innerHTML = "";
+    statusEl.textContent = "";
+
+    if (!items.length) {
+      statusEl.textContent = "표시할 데이터가 없습니다.";
+      return;
+    }
+
+    items.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      card.onclick = () => {
+        window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+      };
+
+      card.innerHTML = `
+        <div class="card-left">
+          <div class="rank-badge">${item.rank}위</div>
+          <div>
+            <div class="team-name">${item.displayName}</div>
+            <div class="team-sub">팀ID: ${item.teamKeyName}</div>
+          </div>
+        </div>
+        <div class="card-right">
+          <div class="score">${item.total}</div>
+          <div class="score-label">팀 점수</div>
+        </div>
+      `;
+
+      boardEl.appendChild(card);
+    });
+
+  } catch (err) {
+    statusEl.textContent = "점수판을 불러오는 중 오류가 발생했습니다.";
+  }
+}
+
 
         items.forEach(item => {
           const card = document.createElement("div");
