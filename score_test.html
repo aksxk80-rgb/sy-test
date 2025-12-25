@@ -153,17 +153,25 @@
         const res = await fetch(CSV_URL);
         const text = await res.text();
 
-        let rows = text.split("\n").map(r => r.trim()).filter(r => r !== "");
+        // 줄바꿈 정리 + BOM 제거 + 빈 줄 제거
+        let rows = text
+          .replace(/\r\n/g, "\n")
+          .replace(/\r/g, "\n")
+          .split("\n")
+          .map(r => r.replace(/^\uFEFF/, "").trim())
+          .filter(r => r !== "");
+
         const header = rows[0].split(",");
         const dataRows = rows.slice(1).map(r => r.split(","));
 
         const rankIdx = header.findIndex(h => h.includes("팀 순위"));
-const nameIdx = header.findIndex(h => h.includes("팀명"));
-const totalIdx = header.findIndex(h => h.includes("총점"));
+        const nameIdx = header.findIndex(h => h.includes("팀명"));
+        const totalIdx = header.findIndex(h => h.includes("총점"));
 
         if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
-  throw new Error("컬럼명을 찾을 수 없습니다.");
-}
+          throw new Error("컬럼명을 찾을 수 없습니다.");
+        }
+
         let items = dataRows.map(cols => {
           const rank = cols[rankIdx]?.trim();
           const name = cols[nameIdx]?.trim();
@@ -180,6 +188,11 @@ const totalIdx = header.findIndex(h => h.includes("총점"));
 
         boardEl.innerHTML = "";
         statusEl.textContent = "";
+
+        if (!items.length) {
+          statusEl.textContent = "표시할 데이터가 없습니다.";
+          return;
+        }
 
         items.forEach(item => {
           const card = document.createElement("div");
@@ -230,7 +243,7 @@ const totalIdx = header.findIndex(h => h.includes("총점"));
 
           card.appendChild(left);
           card.appendChild(right);
-          boardEl.appendChild(card);
+          boardEl.append
         });
       } catch (err) {
         statusEl.textContent = "점수판을 불러오는 중 오류가 발생했습니다.";
