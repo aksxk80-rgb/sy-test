@@ -160,16 +160,11 @@
           .replace(/\r/g, "\n")
           .split("\n")
           .map(r => r.replace(/^\uFEFF/, "").trim())
-          .filter(r => r.replace(/,/g, "").trim() !== "");
+          .filter(r => r.replace(/,/g, "").trim() !== "")
+          .map(r => r.split(","));  // ⭐ 핵심: 줄마다 split(",")
 
-        console.log(rows);
-
-        // ⭐ 현재 CSV 구조:
-        // 0: 빈 줄
-        // 1: 헤더
-        // 2~: 데이터
-        const header = rows[0].split(",");
-        const dataRows = rows.slice(1).map(r => r.split(","));
+        const header = rows[0];
+        const dataRows = rows.slice(1);
 
         const rankIdx = header.findIndex(h => h.includes("팀 순위"));
         const nameIdx = header.findIndex(h => h.includes("팀명"));
