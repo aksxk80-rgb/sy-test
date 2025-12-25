@@ -162,6 +162,8 @@
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
+        console.log(rows);
+
         // ⭐ 현재 CSV 구조:
         // 0: 빈 줄
         // 1: 헤더
