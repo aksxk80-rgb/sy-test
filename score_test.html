@@ -152,6 +152,7 @@
       try {
         const res = await fetch(CSV_URL);
         const text = await res.text();
+        console.log("CSV 원문:", text);
 
         // 줄바꿈 정리 + BOM 제거 + 빈 줄 제거
         let rows = text
