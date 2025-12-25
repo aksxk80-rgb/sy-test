@@ -256,8 +256,8 @@ const dataRows = rows.slice(3).map(r => r.split(","));  // 4번째 줄부터 데
           boardEl.appendChild(card);
         });
       } catch (err) {
-        statusEl.textContent = "점수판을 불러오는 중 오류가 발생했습니다.";
-      }
+  statusEl.textContent = "오류 발생: " + err.message;
+}
     }
 
     loadScoreboard();
