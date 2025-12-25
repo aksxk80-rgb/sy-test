@@ -52,7 +52,7 @@
       justify-content: space-between;
       box-shadow: 0 6px 12px rgba(0,0,0,0.35);
       border: 1px solid rgba(148,163,184,0.25);
-      cursor: pointer; /* ⭐ 클릭 가능 표시 */
+      cursor: pointer;
     }
     .card-left {
       display: flex;
@@ -162,12 +162,12 @@
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
-        const header = rows[2].split(",");      // 3번째 줄을 헤더로
-const dataRows = rows.slice(3).map(r => r.split(","));  // 4번째 줄부터 데이터
+        const header = rows[2].split(",");
+        const dataRows = rows.slice(3).map(r => r.split(","));
 
-        const rankIdx = header.findIndex(h => h.includes("팀 순위"));
-        const nameIdx = header.findIndex(h => h.includes("팀명"));
-        const totalIdx = header.findIndex(h => h.includes("총점"));
+        const rankIdx = header.findIndex(h => h.trim() === "팀 순위");
+        const nameIdx = header.findIndex(h => h.trim() === "팀명");
+        const totalIdx = header.findIndex(h => h.trim() === "총점");
 
         if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
           throw new Error("컬럼명을 찾을 수 없습니다.");
@@ -202,9 +202,10 @@ const dataRows = rows.slice(3).map(r => r.split(","));  // 4번째 줄부터 데
           const card = document.createElement("div");
           card.className = "card";
 
-          // ⭐ 클릭하면 detail 페이지로 이동
           card.onclick = () => {
-            window.location.href = `/sy-test/2025/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`};
+            window.location.href =
+              `/sy-test/2025/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+          };
 
           const left = document.createElement("div");
           left.className = "card-left";
@@ -253,10 +254,10 @@ const dataRows = rows.slice(3).map(r => r.split(","));  // 4번째 줄부터 데
           card.appendChild(right);
           boardEl.appendChild(card);
         });
+
+      } catch (err) {
+        statusEl.textContent = "오류 발생: " + err.message;
       }
-      catch (err) {
-  statusEl.textContent = "오류 발생: " + err.message;
-}
     }
 
     loadScoreboard();
