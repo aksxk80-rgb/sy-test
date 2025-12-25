@@ -193,41 +193,36 @@
         // CSV 파싱 (아주 단순한 구조 기준)
         const rows = text.trim().split("\n").map(r => r.split(","));
 
-        // 첫 줄은 헤더
-        const header = rows[0];
-        const dataRows = rows.slice(2);
+// 첫 줄은 헤더
+const header = rows[0];
+const dataRows = rows.slice(2);
 
-        // 컬럼 인덱스 찾기 (헤더 이름으로)
-        const rankIdx = header.indexOf("팀 순위");
-        const teamNameIdx = header.indexOf("팀이름");
-        const displayNameIdx = header.indexOf("팀명"); // 보드에 크게 보여줄 이름
-        const scoreIdx = header.indexOf("점수");
-        const totalIdx = header.indexOf("총점");
+// 보기용 시트 컬럼 인덱스
+const rankIdx = header.indexOf("팀 순위");
+const displayNameIdx = header.indexOf("팀명");
+const totalIdx = header.indexOf("총점");
 
-        if (rankIdx === -1 || teamNameIdx === -1 || scoreIdx === -1 || totalIdx === -1) {
-          throw new Error("필요한 컬럼(팀이름/점수/팀 순위/총점)을 찾을 수 없습니다.");
-        }
+if (rankIdx === -1 || displayNameIdx === -1 || totalIdx === -1) {
+  throw new Error("필요한 컬럼(팀 순위/팀명/총점)을 찾을 수 없습니다.");
+}
 
-        // 유효한 데이터만 필터링
-        let items = dataRows
-          .map(cols => {
-            const rank = cols[rankIdx]?.trim();
-            const teamKeyName = cols[teamNameIdx]?.trim();
-            const displayName = (displayNameIdx >= 0 ? cols[displayNameIdx] : "")?.trim();
-            const score = cols[scoreIdx]?.trim();
-            const total = cols[totalIdx]?.trim();
+let items = dataRows
+  .map(cols => {
+    const rank = cols[rankIdx]?.trim();
+    const displayName = cols[displayNameIdx]?.trim();
+    const total = cols[totalIdx]?.trim();
 
-            if (!rank || !teamKeyName) return null;
+    if (!rank || !displayName) return null;
 
-            return {
-              rank: Number(rank),
-              teamKeyName,
-              displayName: displayName || teamKeyName,
-              score,
-              total
-            };
-          })
-          .filter(Boolean);
+    return {
+      rank: Number(rank),
+      teamKeyName: displayName, // 팀ID 대신 팀명 사용
+      displayName,
+      score: total,             // 점수 = 총점 (보기용 시트에는 점수 없음)
+      total
+    };
+  })
+  .filter(Boolean);
 
         // 순위 기준 정렬
         items = items.sort((a, b) => a.rank - b.rank);
