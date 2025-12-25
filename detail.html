@@ -71,16 +71,12 @@
           .split("\n")
           .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
-        // 실제 헤더는 두 번째 줄
-        const header = rows[1].slice(1); 
-        // 팀명, 번호, 참가자, 1~18, 총점, 팀합산
-
         let teamRows = [];
         let currentTeam = "";
 
+        // CSV는 4번째 줄(인덱스 3)부터 데이터 시작
         for (let i = 3; i < rows.length; i++) {
           const row = rows[i];
-
           if (!row || row.length < 5) continue;
 
           const teamName = row[1] ? row[1].trim() : "";
@@ -90,17 +86,21 @@
           // 팀명 있는 줄이면 업데이트
           if (teamName) currentTeam = teamName;
 
-          // 현재 팀이 우리가 찾는 팀이면 push
-          if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
+          // 팀명 비교 (공백/줄바꿈 제거)
+          if (
+            currentTeam.replace(/\s+/g, "") ===
+            teamParam.replace(/\s+/g, "")
+          ) {
             teamRows.push(row);
           }
+        }
 
         if (teamRows.length === 0) {
           document.getElementById("status").innerText = "해당 팀 데이터를 찾을 수 없습니다.";
           return;
         }
 
-        // 팀 총합 (첫 줄 마지막 컬럼)
+        // 팀합산은 23번 컬럼
         const teamTotal = teamRows[0][23];
         document.getElementById("teamTotal").innerText = "팀 총합: " + teamTotal;
 
@@ -133,7 +133,7 @@
 
           const total = row[22]; // 총점
 
-          const sectors = row.slice(4, 4 + 18);
+          const sectors = row.slice(4, 22); // 18개 섹터
 
           const cells = [name, number, ...sectors, total];
 
@@ -153,6 +153,7 @@
 
       } catch (e) {
         document.getElementById("status").innerText = "데이터 로딩 실패";
+        console.error(e);
       }
     }
 
