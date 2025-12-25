@@ -23,7 +23,7 @@
       .then(res => res.text())
       .then(text => {
         const rows = text.trim().split("\n").map(r => r.split(","));
-        const header = rows[0];
+        const header = rows[0].split(",");
 
         // ⭐ 시트 헤더에 맞게 인덱스 설정
         const rankIdx = header.indexOf("팀 순위");
