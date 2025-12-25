@@ -173,8 +173,6 @@ const dataRows = rows.slice(3).map(r => r.split(","));  // 4번째 줄부터 데
           throw new Error("컬럼명을 찾을 수 없습니다.");
         }
 
-        const dataRows = rows.slice(1).map(r => r.split(","));
-
         let items = dataRows
           .map(cols => {
             const rank = cols[rankIdx]?.trim();
