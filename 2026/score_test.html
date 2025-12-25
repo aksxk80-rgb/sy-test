@@ -162,9 +162,12 @@
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
-        // ⭐ test 시트 구조: 1행 = 헤더, 2행부터 데이터
+        // ⭐ 현재 CSV 구조:
+        // 0: 빈 줄
+        // 1: 헤더
+        // 2~: 데이터
         const header = rows[1].split(",");
-const dataRows = rows.slice(2).map(r => r.split(","));
+        const dataRows = rows.slice(2).map(r => r.split(","));
 
         const rankIdx = header.findIndex(h => h.includes("팀 순위"));
         const nameIdx = header.findIndex(h => h.includes("팀명"));
