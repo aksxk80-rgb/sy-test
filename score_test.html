@@ -1,257 +1,119 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>대회 스코어보드</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      background: #0b1020;
-      color: #f5f5f5;
-    }
-    header {
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: linear-gradient(135deg, #1f2937, #111827);
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.4rem;
-    }
-    header p {
-      margin: 4px 0 0;
-      font-size: 0.85rem;
-      color: #9ca3af;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 12px 12px 32px;
-    }
-    .board-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 8px 0 12px;
-      font-size: 0.85rem;
-      color: #9ca3af;
-    }
-    .refresh-hint {
-      font-size: 0.8rem;
-      color: #6b7280;
-    }
-    .card {
-      background: rgba(17,24,39,0.95);
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.35);
-      border: 1px solid rgba(148,163,184,0.25);
-    }
-    .card-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-    .rank-badge {
-      width: 40px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 4px 0;
-      border-radius: 999px;
-      background: #111827;
-      color: #e5e7eb;
-      border: 1px solid rgba(75,85,99,0.9);
-      flex-shrink: 0;
-    }
-    .rank-1 {
-      background: linear-gradient(135deg, #f59e0b, #f97316);
-      color: #111827;
-      border: none;
-    }
-    .rank-2 {
-      background: linear-gradient(135deg, #e5e7eb, #9ca3af);
-      color: #111827;
-      border: none;
-    }
-    .rank-3 {
-      background: linear-gradient(135deg, #fcd34d, #fbbf24);
-      color: #111827;
-      border: none;
-    }
-    .team-name {
-      font-size: 0.95rem;
-      font-weight: 600;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      max-width: 170px;
-    }
-    .team-sub {
-      font-size: 0.75rem;
-      color: #9ca3af;
-      margin-top: 2px;
-    }
-    .card-right {
-      text-align: right;
-      font-size: 0.85rem;
-      flex-shrink: 0;
-    }
-    .score {
-      font-weight: 700;
-      font-size: 1rem;
-      color: #fbbf24;
-    }
-    .score-label {
-      font-size: 0.72rem;
-      color: #9ca3af;
-    }
-    .total-score {
-      font-size: 0.78rem;
-      margin-top: 2px;
-      color: #9ca3af;
-    }
-    .loading, .error {
-      text-align: center;
-      font-size: 0.9rem;
-      margin-top: 24px;
-      color: #9ca3af;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>메리클라임 예선 스코어보드</h1>
-    <p>실시간 팀 순위 · 스프레드시트 기반 자동 업데이트</p>
-  </header>
+<script>
+const CSV_URL =
+  "https://docs.google.com/spreadsheets/d/1CQOwFcg-lpUQ77ot8-6FhG4D6b4zxd6yo-bkpHjHetU/export?format=csv&gid=914454642";
 
-  <div class="container">
-    <div class="board-header">
-      <span>실시간 순위</span>
-      <span class="refresh-hint">※ 시트 수정 후 새로고침하면 반영됩니다.</span>
-    </div>
+async function loadScoreboard() {
+  const statusEl = document.getElementById("status");
+  const boardEl = document.getElementById("board");
 
-    <div id="status" class="loading">데이터 불러오는 중...</div>
-    <div id="board"></div>
-  </div>
+  try {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
 
-  <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/1CQOwFcg-lpUQ77ot8-6FhG4D6b4zxd6yo-bkpHjHetU/export?format=csv&gid=914454642";
+    // CSV 정리: 줄바꿈 통일 + BOM 제거 + 빈 줄 제거 + 쉼표만 있는 줄 제거
+    let rows = text
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .split("\n")
+      .map(r => r.replace(/^\uFEFF/, "").trim())
+      .filter(r => r.replace(/,/g, "").trim() !== "");
 
-    async function loadScoreboard() {
-      const statusEl = document.getElementById("status");
-      const boardEl = document.getElementById("board");
+    // 헤더
+    const header = rows[0].split(",");
 
-      try {
-        const res = await fetch(CSV_URL);
-        const text = await res.text();
-        console.log("CSV 원문:", text);
+    // 컬럼 자동 감지
+    const rankIdx = header.findIndex(h => h.includes("팀 순위"));
+    const nameIdx = header.findIndex(h => h.includes("팀명"));
+    const totalIdx = header.findIndex(h => h.includes("총점"));
 
-        // 줄바꿈 정리 + BOM 제거 + 빈 줄 제거
-        let rows = text
-          .replace(/\r\n/g, "\n")
-          .replace(/\r/g, "\n")
-          .split("\n")
-          .map(r => r.replace(/^\uFEFF/, "").trim())
-          .filter(r => r !== "");
-
-        const header = rows[0].split(",");
-        const dataRows = rows.slice(1).map(r => r.split(","));
-
-        const rankIdx = header.findIndex(h => h.includes("팀 순위"));
-        const nameIdx = header.findIndex(h => h.includes("팀명"));
-        const totalIdx = header.findIndex(h => h.includes("총점"));
-
-        if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
-          throw new Error("컬럼명을 찾을 수 없습니다.");
-        }
-
-        let items = dataRows.map(cols => {
-          const rank = cols[rankIdx]?.trim();
-          const name = cols[nameIdx]?.trim();
-          const total = cols[totalIdx]?.trim();
-          if (!rank || !name) return null;
-          return {
-            rank: Number(rank),
-            displayName: name,
-            teamKeyName: name,
-            score: total,
-            total
-          };
-        }).filter(Boolean).sort((a, b) => a.rank - b.rank);
-
-        boardEl.innerHTML = "";
-        statusEl.textContent = "";
-
-        if (!items.length) {
-          statusEl.textContent = "표시할 데이터가 없습니다.";
-          return;
-        }
-
-        items.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "card";
-
-          const left = document.createElement("div");
-          left.className = "card-left";
-
-          const badge = document.createElement("div");
-          badge.className = "rank-badge";
-          if (item.rank === 1) badge.classList.add("rank-1");
-          else if (item.rank === 2) badge.classList.add("rank-2");
-          else if (item.rank === 3) badge.classList.add("rank-3");
-          badge.textContent = item.rank + "위";
-
-          const info = document.createElement("div");
-          const nameEl = document.createElement("div");
-          nameEl.className = "team-name";
-          nameEl.textContent = item.displayName;
-
-          const subEl = document.createElement("div");
-          subEl.className = "team-sub";
-          subEl.textContent = "팀ID: " + item.teamKeyName;
-
-          info.appendChild(nameEl);
-          info.appendChild(subEl);
-          left.appendChild(badge);
-          left.appendChild(info);
-
-          const right = document.createElement("div");
-          right.className = "card-right";
-
-          const scoreEl = document.createElement("div");
-          scoreEl.className = "score";
-          scoreEl.textContent = item.score;
-
-          const scoreLabel = document.createElement("div");
-          scoreLabel.className = "score-label";
-          scoreLabel.textContent = "팀 점수";
-
-          const totalEl = document.createElement("div");
-          totalEl.className = "total-score";
-          totalEl.textContent = "총점: " + item.total;
-
-          right.appendChild(scoreEl);
-          right.appendChild(scoreLabel);
-          right.appendChild(totalEl);
-
-          card.appendChild(left);
-          card.appendChild(right);
-          boardEl.append
-        });
-      } catch (err) {
-        statusEl.textContent = "점수판을 불러오는 중 오류가 발생했습니다.";
-      }
+    if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
+      throw new Error("컬럼명을 찾을 수 없습니다.");
     }
 
-    loadScoreboard();
-  </script>
-</body>
-</html>
+    // 데이터
+    const dataRows = rows.slice(1).map(r => r.split(","));
+
+    let items = dataRows
+      .map(cols => {
+        const rank = cols[rankIdx]?.trim();
+        const name = cols[nameIdx]?.trim();
+        const total = cols[totalIdx]?.trim();
+        if (!rank || !name) return null;
+        return {
+          rank: Number(rank),
+          displayName: name,
+          teamKeyName: name,
+          score: total,
+          total
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.rank - b.rank);
+
+    boardEl.innerHTML = "";
+    statusEl.textContent = "";
+
+    if (!items.length) {
+      statusEl.textContent = "표시할 데이터가 없습니다.";
+      return;
+    }
+
+    // 카드 렌더링
+    items.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const left = document.createElement("div");
+      left.className = "card-left";
+
+      const badge = document.createElement("div");
+      badge.className = "rank-badge";
+      if (item.rank === 1) badge.classList.add("rank-1");
+      else if (item.rank === 2) badge.classList.add("rank-2");
+      else if (item.rank === 3) badge.classList.add("rank-3");
+      badge.textContent = item.rank + "위";
+
+      const info = document.createElement("div");
+      const nameEl = document.createElement("div");
+      nameEl.className = "team-name";
+      nameEl.textContent = item.displayName;
+
+      const subEl = document.createElement("div");
+      subEl.className = "team-sub";
+      subEl.textContent = "팀ID: " + item.teamKeyName;
+
+      info.appendChild(nameEl);
+      info.appendChild(subEl);
+      left.appendChild(badge);
+      left.appendChild(info);
+
+      const right = document.createElement("div");
+      right.className = "card-right";
+
+      const scoreEl = document.createElement("div");
+      scoreEl.className = "score";
+      scoreEl.textContent = item.score;
+
+      const scoreLabel = document.createElement("div");
+      scoreLabel.className = "score-label";
+      scoreLabel.textContent = "팀 점수";
+
+      const totalEl = document.createElement("div");
+      totalEl.className = "total-score";
+      totalEl.textContent = "총점: " + item.total;
+
+      right.appendChild(scoreEl);
+      right.appendChild(scoreLabel);
+      right.appendChild(totalEl);
+
+      card.appendChild(left);
+      card.appendChild(right);
+      boardEl.appendChild(card);
+    });
+  } catch (err) {
+    statusEl.textContent = "점수판을 불러오는 중 오류가 발생했습니다.";
+  }
+}
+
+loadScoreboard();
+</script>
