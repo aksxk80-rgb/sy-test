@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>개인전 스코어보드</title>
+  <title>2026 개인전 스코어보드</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     .card { border: 1px solid #ccc; padding: 10px; margin: 10px 0; cursor: pointer; }
@@ -15,33 +15,42 @@
   <div id="board"></div>
 
   <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQEXAMPLE2026/pub?output=csv"; // 여기에 실제 시트 URL 넣기
+    // ⭐ 강남점 실제 CSV URL
+    const sheetUrl =
+      "https://docs.google.com/spreadsheets/d/1EyTd9ypfTUPwYxQECAtvFZWsE87-FBG2ef6I3cDoc2o/export?format=csv&gid=914454642";
 
     fetch(sheetUrl)
       .then(res => res.text())
       .then(text => {
-        const rows = text.trim().split("\n").map(row => row.split(","));
+        const rows = text.trim().split("\n").map(r => r.split(","));
         const header = rows[0];
-        const nameIdx = header.indexOf("이름");
-        const rankIdx = header.indexOf("순위");
+
+        // ⭐ 시트 헤더에 맞게 인덱스 설정
+        const rankIdx = header.indexOf("팀 순위");
+        const nameIdx = header.indexOf("팀명");
         const totalIdx = header.indexOf("총점");
 
-        const items = rows.slice(1).map(cols => {
-          const name = cols[nameIdx]?.trim();
-          const rank = cols[rankIdx]?.trim();
-          const total = cols[totalIdx]?.trim();
-          if (!rank || !name) return null;
-          return {
-            rank: Number(rank),
-            displayName: name,
-            teamKeyName: name,
-            score: total,
-            total
-          };
-        }).filter(Boolean).sort((a, b) => a.rank - b.rank);
+        const items = rows.slice(1)
+          .map(cols => {
+            const rank = cols[rankIdx]?.trim();
+            const name = cols[nameIdx]?.trim();
+            const total = cols[totalIdx]?.trim();
+
+            if (!rank || !name) return null;
+
+            return {
+              rank: Number(rank),
+              displayName: name,
+              teamKeyName: name,
+              total
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.rank - b.rank);
 
         const boardEl = document.getElementById("board");
         const statusEl = document.getElementById("status");
+
         boardEl.innerHTML = "";
         statusEl.textContent = "";
 
@@ -54,11 +63,19 @@
           const card = document.createElement("div");
           card.className = "card";
           card.innerHTML = `<strong>${item.rank}위</strong> - ${item.displayName} (${item.total}점)`;
+
+          // ⭐ 절대 경로로 detail 페이지 이동
           card.onclick = () => {
-            window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+            window.location.href =
+              `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
           };
+
           boardEl.appendChild(card);
         });
+      })
+      .catch(err => {
+        document.getElementById("status").textContent = "데이터 로딩 실패";
+        console.error(err);
       });
   </script>
 </body>
