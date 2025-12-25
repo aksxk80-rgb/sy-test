@@ -162,7 +162,8 @@
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
-        const header = rows[0].split(",");
+        const header = rows[2].split(",");      // 3번째 줄을 헤더로
+const dataRows = rows.slice(3).map(r => r.split(","));  // 4번째 줄부터 데이터
 
         const rankIdx = header.findIndex(h => h.includes("팀 순위"));
         const nameIdx = header.findIndex(h => h.includes("팀명"));
