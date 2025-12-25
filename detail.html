@@ -91,10 +91,9 @@
           if (teamName) currentTeam = teamName;
 
           // 현재 팀이 우리가 찾는 팀이면 push
-          if (currentTeam === teamParam) {
+          if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
             teamRows.push(row);
           }
-        }
 
         if (teamRows.length === 0) {
           document.getElementById("status").innerText = "해당 팀 데이터를 찾을 수 없습니다.";
@@ -102,7 +101,7 @@
         }
 
         // 팀 총합 (첫 줄 마지막 컬럼)
-        const teamTotal = teamRows[0][teamRows[0].length - 1];
+        const teamTotal = teamRows[0][23];
         document.getElementById("teamTotal").innerText = "팀 총합: " + teamTotal;
 
         // 표 만들기
@@ -132,7 +131,7 @@
           const name = row[3];
           const number = row[2];
 
-          const total = row[row.length - 2]; // 총점
+          const total = row[22]; // 총점
 
           const sectors = row.slice(4, 4 + 18);
 
