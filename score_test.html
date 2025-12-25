@@ -5,7 +5,6 @@
   <title>대회 스코어보드</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* 스타일은 그대로 유지 */
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
@@ -136,7 +135,7 @@
   <div class="container">
     <div class="board-header">
       <span>실시간 순위</span>
-      <span class="refresh-hint">※ 시트 수정 후 이 페이지를 새로고침하면 반영됩니다.</span>
+      <span class="refresh-hint">※ 시트 수정 후 새로고침하면 반영됩니다.</span>
     </div>
 
     <div id="status" class="loading">데이터 불러오는 중...</div>
@@ -144,7 +143,8 @@
   </div>
 
   <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/1CQOwFcg-lpUQ77ot8-6FhG4D6b4zxd6yo-bkpHjHetU/export?format=csv&gid=914454642";
+    const CSV_URL =
+      "https://docs.google.com/spreadsheets/d/1CQOwFcg-lpUQ77ot8-6FhG4D6b4zxd6yo-bkpHjHetU/export?format=csv&gid=914454642";
 
     async function loadScoreboard() {
       const statusEl = document.getElementById("status");
@@ -152,47 +152,45 @@
 
       try {
         const res = await fetch(CSV_URL);
-        if (!res.ok) throw new Error("시트 응답 오류");
         const text = await res.text();
 
-        const rows = text.trim().split("\n").map((r, i) => {
-          if (i === 0) r = r.replace(/^\uFEFF/, ""); // BOM 제거
-          return r.split(",");
-        });
+        // 줄 단위로 나누고 완전 빈 줄 제거
+        let rows = text.split("\n").map(r => r.trim());
+        rows = rows.filter(r => r !== "");
 
-        const header = rows[0];
-        const dataRows = rows.slice(2);
+        // 첫 줄이 진짜 헤더
+        const header = rows[0].split(",");
+
+        // 데이터 행
+        const dataRows = rows.slice(1).map(r => r.split(","));
 
         const rankIdx = header.indexOf("팀 순위");
-        const displayNameIdx = header.indexOf("팀명");
+        const nameIdx = header.indexOf("팀명");
         const totalIdx = header.indexOf("총점");
 
-        if (rankIdx === -1 || displayNameIdx === -1 || totalIdx === -1) {
+        if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
           throw new Error("필요한 컬럼을 찾을 수 없습니다.");
         }
 
-        let items = dataRows.map(cols => {
-          const rank = cols[rankIdx]?.trim();
-          const displayName = cols[displayNameIdx]?.trim();
-          const total = cols[totalIdx]?.trim();
-          if (!rank || !displayName) return null;
-          return {
-            rank: Number(rank),
-            teamKeyName: displayName,
-            displayName,
-            score: total,
-            total
-          };
-        }).filter(Boolean);
+        let items = dataRows
+          .map(cols => {
+            const rank = cols[rankIdx]?.trim();
+            const name = cols[nameIdx]?.trim();
+            const total = cols[totalIdx]?.trim();
+            if (!rank || !name) return null;
+            return {
+              rank: Number(rank),
+              displayName: name,
+              teamKeyName: name,
+              score: total,
+              total
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.rank - b.rank);
 
-        items = items.sort((a, b) => a.rank - b.rank);
         boardEl.innerHTML = "";
         statusEl.textContent = "";
-
-        if (!items.length) {
-          statusEl.textContent = "표시할 데이터가 없습니다.";
-          return;
-        }
 
         items.forEach(item => {
           const card = document.createElement("div");
@@ -209,8 +207,6 @@
           badge.textContent = item.rank + "위";
 
           const info = document.createElement("div");
-          info.className = "team-info";
-
           const nameEl = document.createElement("div");
           nameEl.className = "team-name";
           nameEl.textContent = item.displayName;
@@ -221,6 +217,7 @@
 
           info.appendChild(nameEl);
           info.appendChild(subEl);
+
           left.appendChild(badge);
           left.appendChild(info);
 
@@ -245,4 +242,14 @@
 
           card.appendChild(left);
           card.appendChild(right);
-          boardEl
+          boardEl.appendChild(card);
+        });
+      } catch (err) {
+        statusEl.textContent = "점수판을 불러오는 중 오류가 발생했습니다.";
+      }
+    }
+
+    loadScoreboard();
+  </script>
+</body>
+</html>
