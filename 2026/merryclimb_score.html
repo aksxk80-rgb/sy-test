@@ -145,8 +145,7 @@
 
   <script>
     const CSV_URL =
-      "https://docs.google.com/spreadsheets/d/1CQOwFcg-lpUQ77ot8-6FhG4D6b4zxd6yo-bkpHjHetU/export?format=csv&gid=914454642";
-
+      "https://docs.google.com/spreadsheets/d/1EyTd9ypfTUPwYxQECAtvFZWsE87-FBG2ef6I3cDoc2o/export?format=csv&gid=914454642" ;
     async function loadScoreboard() {
       const statusEl = document.getElementById("status");
       const boardEl = document.getElementById("board");
@@ -205,7 +204,7 @@
 
           // ⭐ 클릭하면 detail 페이지로 이동
           card.onclick = () => {
-            window.location.href = `2025/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+            window.location.href = `2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
           };
 
           const left = document.createElement("div");
