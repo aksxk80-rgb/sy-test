@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>관리자 로그인</title>
+<style>
+  body {
+    background:#0b1020;
+    color:white;
+    font-family:system-ui;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+  }
+  .box {
+    background:#111827;
+    padding:30px;
+    border-radius:12px;
+    width:300px;
+    text-align:center;
+  }
+  input {
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+    border:none;
+  }
+  button {
+    width:100%;
+    padding:10px;
+    margin-top:15px;
+    background:#4a6cf7;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="box">
+    <h3>관리자 로그인</h3>
+    <input id="pw" type="password" placeholder="비밀번호 입력">
+    <button onclick="login()">확인</button>
+  </div>
+
+<script>
+function login() {
+  const pw = document.getElementById("pw").value;
+
+  // 원하는 비밀번호로 변경
+  const REAL_PW = "1004";
+
+  if (pw === REAL_PW) {
+    location.href = "https://script.google.com/macros/s/웹앱ID/exec";
+  } else {
+    alert("비밀번호가 틀렸습니다.");
+  }
+}
+</script>
+</body>
+</html>
