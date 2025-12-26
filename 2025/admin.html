@@ -1,1 +1,40 @@
 
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>관리자 입력</h2>
+
+  <label>시트 선택:</label>
+  <select id="sheetName">
+    <option value="2025점수">2025점수</option>
+    <option value="2026점수">2026점수</option>
+    <option value="raw">raw</option>
+    <!-- 필요하면 탭 계속 추가 -->
+  </select>
+  <br><br>
+
+  날짜: <input id="date" type="date"><br><br>
+  이름: <input id="name" type="text"><br><br>
+  점수: <input id="score" type="number"><br><br>
+
+  <button onclick="sendData()">저장</button>
+
+  <script>
+    function sendData() {
+      const data = {
+        sheetName: document.getElementById('sheetName').value,
+        date: document.getElementById('date').value,
+        name: document.getElementById('name').value,
+        score: document.getElementById('score').value
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycbyFNtzVLefK_oO0sfp-1ewu2a-6leZ5XvAXO9XcufA-5MGxy1oDZFtcXwZmBvYIPfMm1Q/exec", {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      .then(res => alert("저장 완료"))
+      .catch(err => alert("오류 발생"));
+    }
+  </script>
+</body>
+</html>
