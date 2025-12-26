@@ -3,6 +3,8 @@
 <body>
   <h2>섹터 점수 입력</h2>
 
+  <p>참가자 번호: <input id="number" type="number"></p>
+
   <label>섹터 선택:</label>
   <select id="sector" onchange="renderInputs()">
     <option value="1">1섹터</option>
@@ -23,7 +25,7 @@
   <script>
     function renderInputs() {
       const sector = Number(document.getElementById('sector').value);
-      const start = (sector - 1) * 2 + 1; // 1섹터=1, 2섹터=3, 3섹터=5...
+      const start = (sector - 1) * 2 + 1; 
       const next = start + 1;
 
       const html = `
@@ -39,13 +41,14 @@
       document.getElementById('inputs').innerHTML = html;
     }
 
-    renderInputs(); // 초기 렌더링
+    renderInputs();
 
     function sendData() {
       const sector = document.getElementById('sector').value;
 
       const data = {
         sheetName: sector + "섹터",
+        number: document.getElementById('number').value,
         t1: document.getElementById('t1').value,
         z1: document.getElementById('z1').value,
         a1: document.getElementById('a1').value,
