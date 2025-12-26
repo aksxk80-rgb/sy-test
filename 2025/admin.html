@@ -1,31 +1,57 @@
-
 <!DOCTYPE html>
 <html>
 <body>
-  <h2>관리자 입력</h2>
+  <h2>섹터 점수 입력</h2>
 
-  <label>시트 선택:</label>
-  <select id="sheetName">
-    <option value="2025점수">2025점수</option>
-    <option value="2026점수">2026점수</option>
-    <option value="raw">raw</option>
-    <!-- 필요하면 탭 계속 추가 -->
+  <label>섹터 선택:</label>
+  <select id="sector" onchange="renderInputs()">
+    <option value="1">1섹터</option>
+    <option value="2">2섹터</option>
+    <option value="3">3섹터</option>
+    <option value="4">4섹터</option>
+    <option value="5">5섹터</option>
+    <option value="6">6섹터</option>
+    <option value="7">7섹터</option>
+    <option value="8">8섹터</option>
+    <option value="9">9섹터</option>
   </select>
-  <br><br>
 
-  날짜: <input id="date" type="date"><br><br>
-  이름: <input id="name" type="text"><br><br>
-  점수: <input id="score" type="number"><br><br>
+  <div id="inputs"></div>
 
   <button onclick="sendData()">저장</button>
 
   <script>
+    function renderInputs() {
+      const sector = Number(document.getElementById('sector').value);
+      const start = (sector - 1) * 2 + 1; // 1섹터=1, 2섹터=3, 3섹터=5...
+      const next = start + 1;
+
+      const html = `
+        <p>${start}T: <input id="t1" type="number"></p>
+        <p>${start}Z: <input id="z1" type="number"></p>
+        <p>${start}A: <input id="a1" type="number"></p>
+
+        <p>${next}T: <input id="t2" type="number"></p>
+        <p>${next}Z: <input id="z2" type="number"></p>
+        <p>${next}A: <input id="a2" type="number"></p>
+      `;
+
+      document.getElementById('inputs').innerHTML = html;
+    }
+
+    renderInputs(); // 초기 렌더링
+
     function sendData() {
+      const sector = document.getElementById('sector').value;
+
       const data = {
-        sheetName: document.getElementById('sheetName').value,
-        date: document.getElementById('date').value,
-        name: document.getElementById('name').value,
-        score: document.getElementById('score').value
+        sheetName: sector + "섹터",
+        t1: document.getElementById('t1').value,
+        z1: document.getElementById('z1').value,
+        a1: document.getElementById('a1').value,
+        t2: document.getElementById('t2').value,
+        z2: document.getElementById('z2').value,
+        a2: document.getElementById('a2').value
       };
 
       fetch("https://script.google.com/macros/s/AKfycbyFNtzVLefK_oO0sfp-1ewu2a-6leZ5XvAXO9XcufA-5MGxy1oDZFtcXwZmBvYIPfMm1Q/exec", {
