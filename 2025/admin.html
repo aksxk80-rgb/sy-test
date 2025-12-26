@@ -58,9 +58,9 @@
       };
 
       fetch("https://script.google.com/macros/s/AKfycbyFNtzVLefK_oO0sfp-1ewu2a-6leZ5XvAXO9XcufA-5MGxy1oDZFtcXwZmBvYIPfMm1Q/exec", {
-        method: "POST",
-        body: JSON.stringify(data)
-      })
+  method: "POST",
+  body: JSON.stringify(data)
+})
       .then(res => alert("저장 완료"))
       .catch(err => alert("오류 발생"));
     }
