@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>섹터 점수 입력</h2>
+
+  <p>참가자 번호: <input id="number" type="number"></p>
+
+  <label>섹터 선택:</label>
+  <select id="sector" onchange="renderInputs()">
+    <option value="1">1섹터</option>
+    <option value="2">2섹터</option>
+    <option value="3">3섹터</option>
+    <option value="4">4섹터</option>
+    <option value="5">5섹터</option>
+    <option value="6">6섹터</option>
+    <option value="7">7섹터</option>
+    <option value="8">8섹터</option>
+    <option value="9">9섹터</option>
+  </select>
+
+  <div id="inputs"></div>
+
+  <button onclick="sendData()">저장</button>
+
+  <script>
+    function renderInputs() {
+      const sector = Number(document.getElementById('sector').value);
+      const start = (sector - 1) * 2 + 1;
+      const next = start + 1;
+
+      const html = `
+        <p>${start}T: <input id="t1" type="number"></p>
+        <p>${start}Z: <input id="z1" type="number"></p>
+        <p>${start}A: <input id="a1" type="number"></p>
+
+        <p>${next}T: <input id="t2" type="number"></p>
+        <p>${next}Z: <input id="z2" type="number"></p>
+        <p>${next}A: <input id="a2" type="number"></p>
+      `;
+
+      document.getElementById('inputs').innerHTML = html;
+    }
+
+    renderInputs();
+
+    function sendData() {
+      const sector = document.getElementById('sector').value;
+
+      const data = {
+        sheetName: sector + "섹터",
+        number: document.getElementById('number').value,
+        t1: document.getElementById('t1').value,
+        z1: document.getElementById('z1').value,
+        a1: document.getElementById('a1').value,
+        t2: document.getElementById('t2').value,
+        z2: document.getElementById('z2').value,
+        a2: document.getElementById('a2').value
+      };
+
+      const params = new URLSearchParams(data).toString();
+
+      fetch("https://script.google.com/macros/s/AKfycbwVILhHsxPDud7hkWzA72jcRyqZe-4zpBtCBNkmw60dnXBaSQMadXDrrHJ1gyEsNhyMlA/exec?" + params)
+        .then(res => alert("저장 완료"))
+        .catch(err => alert("오류 발생"));
+    }
+  </script>
+</body>
+</html>
