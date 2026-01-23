@@ -52,7 +52,7 @@
       justify-content: space-between;
       box-shadow: 0 6px 12px rgba(0,0,0,0.35);
       border: 1px solid rgba(148,163,184,0.25);
-      cursor: pointer; /* ⭐ 클릭 가능 표시 */
+      cursor: pointer;
     }
     .card-left {
       display: flex;
@@ -144,8 +144,9 @@
   </div>
 
   <script>
-  const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=1005706752";
+    const CSV_URL =
+      "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=789419188";
+
     async function loadScoreboard() {
       const statusEl = document.getElementById("status");
       const boardEl = document.getElementById("board");
@@ -161,17 +162,17 @@
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
+        // CSV 구조에 맞게 수정됨
         const header = rows[0].split(",");
+        const dataRows = rows.slice(1).map(r => r.split(","));
 
-        const rankIdx = header.findIndex(h => h.includes("팀 순위"));
-        const nameIdx = header.findIndex(h => h.includes("팀명"));
-        const totalIdx = header.findIndex(h => h.includes("총점"));
+        const rankIdx = header.findIndex(h => h.trim() === "팀 순위");
+        const nameIdx = header.findIndex(h => h.trim() === "팀명");
+        const totalIdx = header.findIndex(h => h.trim() === "총점");
 
         if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
           throw new Error("컬럼명을 찾을 수 없습니다.");
         }
-
-        const dataRows = rows.slice(1).map(r => r.split(","));
 
         let items = dataRows
           .map(cols => {
@@ -202,9 +203,10 @@
           const card = document.createElement("div");
           card.className = "card";
 
-          // ⭐ 클릭하면 detail 페이지로 이동
           card.onclick = () => {
-            window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+            window.location.href =
+              `/sy-test/2025/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+          };
 
           const left = document.createElement("div");
           left.className = "card-left";
@@ -253,8 +255,9 @@
           card.appendChild(right);
           boardEl.appendChild(card);
         });
+
       } catch (err) {
-        statusEl.textContent = "점수판을 불러오는 중 오류가 발생했습니다.";
+        statusEl.textContent = "오류 발생: " + err.message;
       }
     }
 
