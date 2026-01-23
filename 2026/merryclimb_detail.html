@@ -11,38 +11,12 @@
       margin: 0;
       padding: 20px;
     }
-
-    h1 {
-      margin-bottom: 4px;
-    }
-
-    .team-total {
-      color: #fbbf24;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.85rem;
-    }
-
-    th, td {
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 6px;
-      text-align: center;
-    }
-
-    th {
-      background: rgba(255,255,255,0.1);
-    }
-
-    .loading {
-      margin-top: 40px;
-      text-align: center;
-      color: #9ca3af;
-    }
+    h1 { margin-bottom: 4px; }
+    .team-total { color: #fbbf24; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    th, td { border: 1px solid rgba(255,255,255,0.15); padding: 6px; text-align: center; }
+    th { background: rgba(255,255,255,0.1); }
+    .loading { margin-top: 40px; text-align: center; color: #9ca3af; }
   </style>
 </head>
 <body>
@@ -57,9 +31,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     const teamParam = urlParams.get("team");
 
-    // ⭐ 반드시 문자열로 선언해야 함
     const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=28014312";
+      "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=28014312";
 
     document.getElementById("teamName").innerText = teamParam + " 팀 상세 정보";
 
@@ -68,8 +41,7 @@
         const res = await fetch(CSV_URL);
         const text = await res.text();
 
-        // 줄 나누기 + 공백 제거
-        let rows = text
+        const rows = text
           .replace(/\r\n/g, "\n")
           .replace(/\r/g, "\n")
           .split("\n")
@@ -77,13 +49,16 @@
           .filter(r => r !== "")
           .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
-        // ⭐ detail CSV도 test CSV처럼 앞에 빈 줄 2개 있음
-        // rows[0] = 빈 줄 제거됨
-        // rows[1] = 빈 줄 제거됨
-        // rows[2] = 헤더
-        // rows[3] = 데이터 시작
+        // 헤더 행 자동 인식
         const header = rows[2];
         const dataRows = rows.slice(3);
+
+        // 열 인덱스 자동 계산
+        const teamIdx = header.indexOf("팀명");
+        const numberIdx = header.indexOf("번호");
+        const nameIdx = header.indexOf("참가자");
+        const totalIdx = header.indexOf("총점");
+        const teamTotalIdx = header.indexOf("팀합산");
 
         let teamRows = [];
         let currentTeam = "";
@@ -91,50 +66,37 @@
         for (let row of dataRows) {
           if (!row || row.length < 5) continue;
 
-          const teamName = row[1]?.trim() || "";
-          const number = row[2];
-          const name = row[3];
+          const teamName = row[teamIdx] || "";
+          const number = row[numberIdx];
+          const name = row[nameIdx];
 
           if (teamName) currentTeam = teamName;
 
-          if (
-            currentTeam.replace(/\s+/g, "") ===
-            teamParam.replace(/\s+/g, "")
-          ) {
+          if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
             teamRows.push(row);
           }
         }
 
         if (teamRows.length === 0) {
-          document.getElementById("status").innerText =
-            "해당 팀 데이터를 찾을 수 없습니다.";
+          document.getElementById("status").innerText = "해당 팀 데이터를 찾을 수 없습니다.";
           return;
         }
 
-        // ⭐ 총점은 마지막에서 두 번째 컬럼
-        const totalIndex = teamRows[0].length - 2;
-
-        // ⭐ 섹터는 4번부터 총점 바로 전까지
-        const sectorStart = 4;
-        const sectorCount = totalIndex - sectorStart;
-
-        // 팀 총합은 마지막 컬럼
-        const teamTotal = teamRows[0][teamRows[0].length - 1];
-        document.getElementById("teamTotal").innerText =
-          "팀 총합: " + teamTotal;
+        // 팀 총합 표시
+        const teamTotal = teamRows[0][teamTotalIdx];
+        document.getElementById("teamTotal").innerText = "팀 총합: " + teamTotal;
 
         // 표 생성
         const table = document.createElement("table");
-
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
 
         const headers = ["참가자", "번호"];
 
-        for (let i = 1; i <= sectorCount; i++) {
-          headers.push(i + "섹터");
+        // 섹터 헤더 자동 생성 (총점 앞까지)
+        for (let i = nameIdx + 1; i < totalIdx; i++) {
+          headers.push(header[i] || (i - nameIdx) + "섹터");
         }
-
         headers.push("총점");
 
         headers.forEach(h => {
@@ -151,12 +113,12 @@
         teamRows.forEach(row => {
           const tr = document.createElement("tr");
 
-          const name = row[3];
-          const number = row[2];
-          const total = row[totalIndex];
-          const sectors = row.slice(sectorStart, totalIndex);
-
-          const cells = [name, number, ...sectors, total];
+          const cells = [
+            row[nameIdx],
+            row[numberIdx],
+            ...row.slice(nameIdx + 1, totalIdx),
+            row[totalIdx]
+          ];
 
           cells.forEach(c => {
             const td = document.createElement("td");
