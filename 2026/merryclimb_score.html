@@ -157,20 +157,20 @@
       const text = await res.text();
 
       let rows = text
-        .replace(/\r\n/g, "\n")
-        .replace(/\r/g, "\n")
-        .split("\n")
-        .map(r => r.replace(/^\uFEFF/, "").trim())
-        .filter(r => r.replace(/,/g, "").trim() !== "")
-        .map(r => r.split(",").map(c => c.trim()));
+  .replace(/\r\n/g, "\n")
+  .replace(/\r/g, "\n")
+  .split("\n")
+  .map(r => r.replace(/^\uFEFF/, "").trim())
+  .filter(r => r.replace(/,/g, "").trim() !== "")
+  .map(r => r.split(",").map(c => c.trim()));
 
-      // 실제 헤더는 세 번째 줄
-      const header = rows[2];
-      const dataRows = rows.slice(3);
+// 헤더는 첫 번째 줄
+const header = rows[0];
+const dataRows = rows.slice(1);
 
-      const rankIdx = header.findIndex(h => h.includes("팀 순위"));
-      const nameIdx = header.findIndex(h => h.includes("팀명"));
-      const totalIdx = header.findIndex(h => h.includes("총점"));
+const rankIdx = header.findIndex(h => h.includes("팀 순위"));
+const nameIdx = header.findIndex(h => h.includes("팀명"));
+const totalIdx = header.findIndex(h => h.includes("총점"));
 
       if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
         throw new Error("컬럼명을 찾을 수 없습니다. 실제 헤더: " + header.join(","));
