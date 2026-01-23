@@ -36,6 +36,9 @@
 
     document.getElementById("teamName").innerText = teamParam + " 팀 상세 정보";
 
+    // 문자열 정규화 함수 (공백, 따옴표 제거)
+    const normalize = s => (s || "").replace(/"/g, "").replace(/\s+/g, "").trim();
+
     async function loadDetail() {
       try {
         const res = await fetch(CSV_URL);
@@ -77,7 +80,7 @@
 
           if (teamName) currentTeam = teamName;
 
-          if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
+          if (normalize(currentTeam) === normalize(teamParam)) {
             teamRows.push(row);
           }
         }
