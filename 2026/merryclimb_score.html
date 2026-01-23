@@ -73,17 +73,17 @@
       flex-shrink: 0;
     }
     /* ✅ 색상 변경된 부분 */
-    .rank-1 {
+    .rank-badge.rank-1 {
       background: linear-gradient(135deg, #ffd700, #fbbf24); /* 금색 */
       color: #111827;
       border: none;
     }
-    .rank-2 {
+    .rank-badge.rank-2 {
       background: linear-gradient(135deg, #e5e7eb, #9ca3af); /* 은색 */
       color: #111827;
       border: none;
     }
-    .rank-3 {
+    .rank-badge.rank-3 {
       background: linear-gradient(135deg, #cd7f32, #b87333); /* 동메달(청동) */
       color: #111827;
       border: none;
@@ -241,4 +241,10 @@
 
           const scoreLabel = document.createElement("div");
           scoreLabel.className = "score-label";
-          scoreLabel.textContent = "팀 점
+          scoreLabel.textContent = "팀 점수";
+
+          const totalEl = document.createElement("div");
+          totalEl.className = "total-score";
+          totalEl.textContent = "총점: " + item.total;
+
+         
