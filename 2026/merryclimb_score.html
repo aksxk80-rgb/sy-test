@@ -2,223 +2,135 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>대회 스코어보드</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>메리클라인 예선 스코어보드</title>
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
       background: #0b1020;
       color: #f5f5f5;
-    }
-    header {
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: linear-gradient(135deg, #1f2937, #111827);
-    }
-    header h1 {
       margin: 0;
-      font-size: 1.4rem;
+      padding: 20px;
     }
-    header p {
-      margin: 4px 0 0;
-      font-size: 0.85rem;
-      color: #9ca3af;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 12px 12px 32px;
-    }
-    .board-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 8px 0 12px;
-      font-size: 0.85rem;
-      color: #9ca3af;
-    }
-    .refresh-hint {
-      font-size: 0.8rem;
-      color: #6b7280;
-    }
+    h1 { margin-bottom: 4px; }
+    .subtitle { color: #9ca3af; margin-bottom: 20px; }
+    .board { display: flex; flex-wrap: wrap; gap: 12px; }
     .card {
-      background: rgba(17,24,39,0.95);
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.35);
-      border: 1px solid rgba(148,163,184,0.25);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 12px;
+      width: 160px;
       cursor: pointer;
+      transition: background 0.2s;
     }
-    .card-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 0;
-    }
-    .rank-badge {
-      width: 40px;
-      text-align: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 4px 0;
-      border-radius: 999px;
-      background: #111827;
-      color: #e5e7eb;
-      border: 1px solid rgba(75,85,99,0.9);
-      flex-shrink: 0;
-    }
-    .rank-1 {
-      background: linear-gradient(135deg, #f59e0b, #f97316);
-      color: #111827;
-      border: none;
-    }
-    .rank-2 {
-      background: linear-gradient(135deg, #e5e7eb, #9ca3af);
-      color: #111827;
-      border: none;
-    }
-    .rank-3 {
-      background: linear-gradient(135deg, #fcd34d, #fbbf24);
-      color: #111827;
-      border: none;
-    }
-    .team-name {
-      font-size: 0.95rem;
-      font-weight: 600;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      max-width: 170px;
-    }
-    .team-sub {
-      font-size: 0.75rem;
-      color: #9ca3af;
-      margin-top: 2px;
-    }
-    .card-right {
-      text-align: right;
-      font-size: 0.85rem;
-      flex-shrink: 0;
-    }
-    .score {
-      font-weight: 700;
-      font-size: 1rem;
-      color: #fbbf24;
-    }
-    .score-label {
-      font-size: 0.72rem;
-      color: #9ca3af;
-    }
-    .total-score {
-      font-size: 0.78rem;
-      margin-top: 2px;
-      color: #9ca3af;
-    }
-    .loading, .error {
-      text-align: center;
-      font-size: 0.9rem;
-      margin-top: 24px;
-      color: #9ca3af;
-    }
+    .card:hover { background: rgba(255,255,255,0.15); }
+    .rank { font-size: 1.2rem; font-weight: bold; color: #fbbf24; }
+    .name { margin-top: 4px; font-weight: 500; }
+    .score { margin-top: 2px; color: #93c5fd; }
+    .loading { margin-top: 40px; text-align: center; color: #9ca3af; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>메리클라임 예선 스코어보드</h1>
-    <p>실시간 팀 순위 · 스프레드시트 기반 자동 업데이트</p>
-  </header>
 
-  <div class="container">
-    <div class="board-header">
-      <span>실시간 순위</span>
-      <span class="refresh-hint">※ 시트 수정 후 새로고침하면 반영됩니다.</span>
-    </div>
-
-    <div id="status" class="loading">데이터 불러오는 중...</div>
-    <div id="board"></div>
-  </div>
+  <h1>메리클라인 예선 스코어보드</h1>
+  <div class="subtitle">실시간 팀 순위! · 스프레드시트 기반 자동 업데이트</div>
+  <div id="status" class="loading">데이터 불러오는 중...</div>
+  <div id="board" class="board"></div>
 
   <script>
-const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
+    const CSV_URL =
+      "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
 
-async function loadScoreboard() {
-  const statusEl = document.getElementById("status");
-  const boardEl = document.getElementById("board");
+    async function loadScoreboard() {
+      const statusEl = document.getElementById("status");
+      const boardEl = document.getElementById("board");
 
-  try {
-    const res = await fetch(CSV_URL);
-    const text = await res.text();
+      try {
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
 
-    const rows = text
-      .replace(/\r\n/g, "\n")
-      .replace(/\r/g, "\n")
-      .split("\n")
-      .map(r => r.trim())
-      .filter(r => r !== "")
-      .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
+        const rows = text
+          .replace(/\r\n/g, "\n")
+          .replace(/\r/g, "\n")
+          .split("\n")
+          .map(r => r.trim())
+          .filter(r => r !== "")
+          .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
-    // 헤더 행 자동 탐색 ("팀 순위" 포함된 줄 찾기)
-    const headerRowIndex = rows.findIndex(r => r.includes("팀 순위"));
-    const header = rows[headerRowIndex];
-    const dataRows = rows.slice(headerRowIndex + 1);
+        console.log("전체 행 수:", rows.length);
 
-    const rankIdx = header.findIndex(h => h.includes("팀 순위"));
-    const nameIdx = header.findIndex(h => h.includes("팀명"));
-    const totalIdx = header.findIndex(h => h.includes("총점"));
+        // 헤더 행 자동 탐색 ("팀 순위" 포함된 줄 찾기)
+        const headerRowIndex = rows.findIndex(r => r.includes("팀 순위") && r.includes("팀명"));
+        if (headerRowIndex === -1) {
+          statusEl.innerText = "헤더를 찾을 수 없습니다. 첫 줄: " + rows[0].join(",");
+          return;
+        }
+        const header = rows[headerRowIndex];
+        const dataRows = rows.slice(headerRowIndex + 1);
 
-    if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
-      throw new Error("컬럼명을 찾을 수 없습니다. 실제 헤더: " + header.join(","));
+        console.log("헤더:", header);
+
+        const rankIdx = header.findIndex(h => h.includes("팀 순위"));
+        const nameIdx = header.findIndex(h => h.includes("팀명"));
+        const totalIdx = header.findIndex(h => h.includes("총점"));
+
+        if (rankIdx < 0 || nameIdx < 0 || totalIdx < 0) {
+          statusEl.innerText = "컬럼명을 찾을 수 없습니다. 실제 헤더: " + header.join(",");
+          return;
+        }
+
+        let items = dataRows
+          .map(cols => {
+            const rank = cols[rankIdx];
+            const name = cols[nameIdx];
+            const total = cols[totalIdx];
+            if (!rank || !name) return null;
+            return {
+              rank: Number(rank),
+              displayName: name,
+              teamKeyName: name,
+              score: total,
+              total
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.rank - b.rank);
+
+        console.log("팀 수:", items.length);
+
+        boardEl.innerHTML = "";
+        statusEl.textContent = "";
+
+        if (!items.length) {
+          statusEl.textContent = "표시할 데이터가 없습니다.";
+          return;
+        }
+
+        items.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.onclick = () => {
+            window.location.href =
+              `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+          };
+
+          card.innerHTML = `
+            <div class="rank">${item.rank}</div>
+            <div class="name">${item.displayName}</div>
+            <div class="score">${item.total}</div>
+          `;
+          boardEl.appendChild(card);
+        });
+
+      } catch (err) {
+        statusEl.textContent = "데이터 로딩 실패: " + err.message;
+        console.error("에러 발생:", err);
+      }
     }
 
-    let items = dataRows
-      .map(cols => {
-        const rank = cols[rankIdx];
-        const name = cols[nameIdx];
-        const total = cols[totalIdx];
-        if (!rank || !name) return null;
-        return {
-          rank: Number(rank),
-          displayName: name,
-          teamKeyName: name,
-          score: total,
-          total
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.rank - b.rank);
+    loadScoreboard();
+  </script>
 
-    boardEl.innerHTML = "";
-    statusEl.textContent = "";
-
-    if (!items.length) {
-      statusEl.textContent = "표시할 데이터가 없습니다.";
-      return;
-    }
-
-    items.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      card.onclick = () => {
-        window.location.href =
-          `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
-      };
-
-      // ... 카드 UI 생성 부분 동일 ...
-    });
-
-  } catch (err) {
-    statusEl.textContent = "오류 발생: " + err.message;
-  }
-}
-
-loadScoreboard();
-</script>
 </body>
 </html>
