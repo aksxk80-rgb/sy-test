@@ -49,16 +49,21 @@
           .filter(r => r !== "")
           .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
-        // 헤더 행 자동 인식
-        const header = rows[2];
-        const dataRows = rows.slice(3);
+        // 헤더 행 자동 탐색 ("팀명" 포함된 줄 찾기)
+        const headerRowIndex = rows.findIndex(r => r.includes("팀명"));
+        if (headerRowIndex === -1) {
+          document.getElementById("status").innerText = "헤더를 찾을 수 없습니다.";
+          return;
+        }
+        const header = rows[headerRowIndex];
+        const dataRows = rows.slice(headerRowIndex + 1);
 
         // 열 인덱스 자동 계산
-        const teamIdx = header.indexOf("팀명");
-        const numberIdx = header.indexOf("번호");
-        const nameIdx = header.indexOf("참가자");
-        const totalIdx = header.indexOf("총점");
-        const teamTotalIdx = header.indexOf("팀합산");
+        const teamIdx = header.findIndex(h => h.includes("팀명"));
+        const numberIdx = header.findIndex(h => h.includes("번호"));
+        const nameIdx = header.findIndex(h => h.includes("참가자"));
+        const totalIdx = header.findIndex(h => h.includes("총점"));
+        const teamTotalIdx = header.findIndex(h => h.includes("팀합산"));
 
         let teamRows = [];
         let currentTeam = "";
