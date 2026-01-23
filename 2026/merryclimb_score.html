@@ -5,36 +5,128 @@
   <title>대회 스코어보드</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0; background: #0b1020; color: #f5f5f5; }
-    header { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: linear-gradient(135deg, #1f2937, #111827); }
-    header h1 { margin: 0; font-size: 1.4rem; }
-    header p { margin: 4px 0 0; font-size: 0.85rem; color: #9ca3af; }
-    .container { max-width: 900px; margin: 0 auto; padding: 12px 12px 32px; }
-    .board-header { display: flex; justify-content: space-between; align-items: center;
-      margin: 8px 0 12px; font-size: 0.85rem; color: #9ca3af; }
-    .refresh-hint { font-size: 0.8rem; color: #6b7280; }
-    .card { background: rgba(17,24,39,0.95); border-radius: 10px; padding: 10px 12px;
-      margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.35); border: 1px solid rgba(148,163,184,0.25);
-      cursor: pointer; }
-    .card-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .rank-badge { width: 40px; text-align: center; font-weight: 700; font-size: 0.9rem;
-      padding: 4px 0; border-radius: 999px; background: #111827; color: #e5e7eb;
-      border: 1px solid rgba(75,85,99,0.9); flex-shrink: 0; }
-    /* 색상 변경된 부분 */
-    .rank-badge.rank-1 { background: linear-gradient(135deg, #ffd700, #fbbf24); color: #111827; border: none; }
-    .rank-badge.rank-2 { background: linear-gradient(135deg, #e5e7eb, #9ca3af); color: #111827; border: none; }
-    .rank-badge.rank-3 { background: linear-gradient(135deg, #cd7f32, #b87333); color: #111827; border: none; }
-    .team-name { font-size: 0.95rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis;
-      overflow: hidden; max-width: 170px; }
-    .team-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
-    .card-right { text-align: right; font-size: 0.85rem; flex-shrink: 0; }
-    .score { font-weight: 700; font-size: 1rem; color: #fbbf24; }
-    .score-label { font-size: 0.72rem; color: #9ca3af; }
-    .total-score { font-size: 0.78rem; margin-top: 2px; color: #9ca3af; }
-    .loading, .error { text-align: center; font-size: 0.9rem; margin-top: 24px; color: #9ca3af; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      background: #0b1020;
+      color: #f5f5f5;
+    }
+    header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(135deg, #1f2937, #111827);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    header p {
+      margin: 4px 0 0;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 12px 12px 32px;
+    }
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0 12px;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+    .refresh-hint {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+    .card {
+      background: rgba(17,24,39,0.95);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.35);
+      border: 1px solid rgba(148,163,184,0.25);
+      cursor: pointer;
+    }
+    .card-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .rank-badge {
+      width: 40px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 4px 0;
+      border-radius: 999px;
+      background: #111827;
+      color: #e5e7eb;
+      border: 1px solid rgba(75,85,99,0.9);
+      flex-shrink: 0;
+    }
+    .rank-badge.rank-1 {
+  background: linear-gradient(135deg, #ffd700, #fbbf24); /* 금색 */
+  color: #111827;
+  border: none;
+}
+
+    .rank-2 {
+      background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+      color: #111827;
+      border: none;
+    }
+    .rank-badge.rank-3 {
+  background: linear-gradient(135deg, #cd7f32, #b87333); /* 동메달(청동) */
+  color: #111827;
+  border: none;
+}
+
+    .team-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 170px;
+    }
+    .team-sub {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+    .card-right {
+      text-align: right;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .score {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fbbf24;
+    }
+    .score-label {
+      font-size: 0.72rem;
+      color: #9ca3af;
+    }
+    .total-score {
+      font-size: 0.78rem;
+      margin-top: 2px;
+      color: #9ca3af;
+    }
+    .loading, .error {
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 24px;
+      color: #9ca3af;
+    }
   </style>
 </head>
 <body>
@@ -72,6 +164,7 @@
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
+        // CSV 구조에 맞게 수정됨
         const header = rows[0].split(",");
         const dataRows = rows.slice(1).map(r => r.split(","));
 
@@ -121,7 +214,7 @@
           left.className = "card-left";
 
           const badge = document.createElement("div");
-          badge.classList.add("rank-badge");
+          badge.className = "rank-badge";
           if (item.rank === 1) badge.classList.add("rank-1");
           else if (item.rank === 2) badge.classList.add("rank-2");
           else if (item.rank === 3) badge.classList.add("rank-3");
