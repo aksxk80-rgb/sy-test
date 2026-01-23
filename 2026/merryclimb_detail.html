@@ -56,10 +56,17 @@
           .filter(r => r !== "")
           .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
-        // 헤더 행 자동 탐색 ("팀명" 포함된 줄 찾기)
-        const headerRowIndex = rows.findIndex(r =>
-          r.some(h => normalize(h).includes("팀명"))
-        );
+        console.log("전체 행 수:", rows.length);
+
+        // 제목 행(메리클라임 등)이나 빈 줄은 건너뛰고 "팀명" 포함된 줄을 헤더로 지정
+        let headerRowIndex = -1;
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          if (row.some(h => normalize(h).includes("팀명"))) {
+            headerRowIndex = i;
+            break;
+          }
+        }
 
         if (headerRowIndex === -1) {
           document.getElementById("status").innerText =
@@ -69,6 +76,8 @@
 
         const header = rows[headerRowIndex];
         const dataRows = rows.slice(headerRowIndex + 1);
+
+        console.log("헤더:", header);
 
         // 컬럼 인덱스 자동 계산
         const teamIdx = header.findIndex(h => normalize(h).includes("팀명"));
