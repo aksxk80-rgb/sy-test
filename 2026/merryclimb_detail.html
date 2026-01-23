@@ -11,38 +11,12 @@
       margin: 0;
       padding: 20px;
     }
-
-    h1 {
-      margin-bottom: 4px;
-    }
-
-    .team-total {
-      color: #fbbf24;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.85rem;
-    }
-
-    th, td {
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 6px;
-      text-align: center;
-    }
-
-    th {
-      background: rgba(255,255,255,0.1);
-    }
-
-    .loading {
-      margin-top: 40px;
-      text-align: center;
-      color: #9ca3af;
-    }
+    h1 { margin-bottom: 4px; }
+    .team-total { color: #fbbf24; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    th, td { border: 1px solid rgba(255,255,255,0.15); padding: 6px; text-align: center; }
+    th { background: rgba(255,255,255,0.1); }
+    .loading { margin-top: 40px; text-align: center; color: #9ca3af; }
   </style>
 </head>
 <body>
@@ -60,68 +34,85 @@
     const CSV_URL =
       "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=28014312";
 
-    document.getElementById("teamName").innerText = teamParam + " 팀 상세 정보";
+    document.getElementById("teamName").innerText = (teamParam || "알 수 없음") + " 팀 상세 정보";
+
+    const normalize = s => (s || "").replace(/"/g, "").replace(/\s+/g, "").trim();
 
     async function loadDetail() {
       try {
+        if (!teamParam) {
+          document.getElementById("status").innerText = "URL에 team 파라미터가 없습니다.";
+          return;
+        }
+
         const res = await fetch(CSV_URL);
         const text = await res.text();
 
         const rows = text
+          .replace(/\r\n/g, "\n")
+          .replace(/\r/g, "\n")
           .split("\n")
+          .map(r => r.trim())
+          .filter(r => r !== "")
           .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
+
+        console.log("전체 행 수:", rows.length);
+
+        // 헤더 행 자동 탐색 ("팀명" 포함된 줄 찾기)
+        const headerRowIndex = rows.findIndex(r =>
+          r.some(h => h.replace(/\s+/g,"").includes("팀명"))
+        );
+        if (headerRowIndex === -1) {
+          document.getElementById("status").innerText =
+            "헤더를 찾을 수 없습니다. 첫 줄: " + rows[0].join(",");
+          return;
+        }
+        const header = rows[headerRowIndex];
+        const dataRows = rows.slice(headerRowIndex + 1);
+
+        console.log("헤더:", header);
+
+        // 컬럼 인덱스 자동 계산
+        const teamIdx = header.findIndex(h => h.replace(/\s+/g,"").includes("팀명"));
+        const numberIdx = header.findIndex(h => h.replace(/\s+/g,"").includes("번호"));
+        const nameIdx = header.findIndex(h => h.replace(/\s+/g,"").includes("참가자"));
+        const totalIdx = header.findIndex(h => h.replace(/\s+/g,"").includes("총점"));
+        const teamTotalIdx = header.findIndex(h => h.replace(/\s+/g,"").includes("팀합산"));
 
         let teamRows = [];
         let currentTeam = "";
 
-        // CSV는 4번째 줄(인덱스 3)부터 데이터 시작
-        for (let i = 3; i < rows.length; i++) {
-          const row = rows[i];
+        for (let row of dataRows) {
           if (!row || row.length < 5) continue;
-
-          const teamName = row[1] ? row[1].trim() : "";
-          const number = row[2];
-          const name = row[3];
-
+          const teamName = row[teamIdx] || "";
           if (teamName) currentTeam = teamName;
 
-          if (
-            currentTeam.replace(/\s+/g, "") ===
-            teamParam.replace(/\s+/g, "")
-          ) {
+          if (normalize(currentTeam) === normalize(teamParam)) {
             teamRows.push(row);
           }
         }
 
+        console.log("찾은 팀 행 수:", teamRows.length);
+
         if (teamRows.length === 0) {
+          document.getElementById("status").style.display = "block";
           document.getElementById("status").innerText = "해당 팀 데이터를 찾을 수 없습니다.";
           return;
         }
 
-        // ⭐ 자동 인식: 총점은 마지막에서 두 번째 컬럼
-        const totalIndex = teamRows[0].length - 2;
-
-        // ⭐ 자동 인식: 섹터는 4번부터 총점 바로 전까지
-        const sectorStart = 4;
-        const sectorCount = totalIndex - sectorStart;
-
-        // 팀합산은 마지막 컬럼
-        const teamTotal = teamRows[0][teamRows[0].length - 1];
+        // 팀 총합 표시
+        const teamTotal = teamRows[0][teamTotalIdx];
         document.getElementById("teamTotal").innerText = "팀 총합: " + teamTotal;
 
-        // 표 만들기
+        // 표 생성
         const table = document.createElement("table");
-
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
 
         const headers = ["참가자", "번호"];
-
-        // ⭐ 섹터 헤더 자동 생성
-        for (let i = 1; i <= sectorCount; i++) {
-          headers.push(i + "섹터");
+        for (let i = nameIdx + 1; i < totalIdx; i++) {
+          headers.push(header[i] || (i - nameIdx) + "섹터");
         }
-
         headers.push("총점");
 
         headers.forEach(h => {
@@ -137,22 +128,17 @@
 
         teamRows.forEach(row => {
           const tr = document.createElement("tr");
-
-          const name = row[3];
-          const number = row[2];
-
-          const total = row[totalIndex];
-
-          const sectors = row.slice(sectorStart, totalIndex);
-
-          const cells = [name, number, ...sectors, total];
-
+          const cells = [
+            row[nameIdx],
+            row[numberIdx],
+            ...row.slice(nameIdx + 1, totalIdx),
+            row[totalIdx]
+          ];
           cells.forEach(c => {
             const td = document.createElement("td");
             td.innerText = c;
             tr.appendChild(td);
           });
-
           tbody.appendChild(tr);
         });
 
@@ -162,8 +148,9 @@
         document.getElementById("tableArea").appendChild(table);
 
       } catch (e) {
-        document.getElementById("status").innerText = "데이터 로딩 실패";
-        console.error(e);
+        document.getElementById("status").style.display = "block";
+        document.getElementById("status").innerText = "데이터 로딩 실패: " + e.message;
+        console.error("에러 발생:", e);
       }
     }
 
