@@ -47,21 +47,21 @@
       cursor: pointer;
     }
 
-    /* 💡 요청 반영: 1, 2, 3위 외곽선 두께 3px 및 메달 색상과 동일하게 설정 */
-    .rank-1-card { border: 3px solid #fbbf24 !important; } /* 금색 */
-    .rank-2-card { border: 3px solid #cbd5e1 !important; } /* 은색 */
-    .rank-3-card { border: 3px solid #f97316 !important; } /* 동색 */
+    /* 💡 1, 2, 3위 외곽선 두께 3px 강조 */
+    .rank-1-card { border: 3px solid #fbbf24 !important; }
+    .rank-2-card { border: 3px solid #cbd5e1 !important; }
+    .rank-3-card { border: 3px solid #f97316 !important; }
 
     .card-left { display: flex; align-items: center; gap: 15px; min-width: 0; }
     
-    /* 💡 요청 반영: 원형 메달 디자인 */
+    /* 💡 원형 메달 디자인 */
     .rank-badge {
       width: 46px;
       height: 46px;
       text-align: center;
       font-weight: 800;
       font-size: 0.95rem;
-      border-radius: 50%; /* 원형 메달 */
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -71,7 +71,6 @@
       flex-shrink: 0;
     }
     
-    /* 💡 요청 반영: 1, 2, 3등 메달 컬러 (외곽선과 통일) */
     .rank-1 { background: linear-gradient(135deg, #ffd700, #fbbf24) !important; color: #111827 !important; border: none !important; }
     .rank-2 { background: linear-gradient(135deg, #f1f5f9, #cbd5e1) !important; color: #111827 !important; border: none !important; }
     .rank-3 { background: linear-gradient(135deg, #f59e0b, #f97316) !important; color: #111827 !important; border: none !important; }
@@ -88,7 +87,7 @@
 <body>
   <header>
     <h1>메리클라임 예선 스코어보드</h1>
-    <p>실시간 팀 순위 · 자동 업데이트</p>
+    <p>실시간 팀 순위 · 스프레드시트 기반 자동 업데이트</p>
   </header>
 
   <div class="container">
@@ -111,22 +110,28 @@
         const res = await fetch(CSV_URL);
         const text = await res.text();
 
+        // 💡 더 유연한 데이터 클리닝 로직
         let rows = text.split("\n")
           .map(r => r.replace(/^\uFEFF/, "").trim())
-          .filter(r => r !== "");
+          .filter(r => r.length > 5); // 빈 줄 방지
 
-        const header = rows[0].split(",");
+        if (rows.length < 2) throw new Error("데이터 형식이 올바르지 않습니다.");
+
+        const header = rows[0].split(",").map(h => h.trim());
         const dataRows = rows.slice(1).map(r => r.split(","));
 
-        const rankIdx = header.findIndex(h => h.trim() === "팀 순위");
-        const nameIdx = header.findIndex(h => h.trim() === "팀명");
-        const totalIdx = header.findIndex(h => h.trim() === "총점");
+        // 컬럼 찾기 (공백 제거 후 검색)
+        const rankIdx = header.findIndex(h => h.includes("순위"));
+        const nameIdx = header.findIndex(h => h.includes("팀명"));
+        const totalIdx = header.findIndex(h => h.includes("총점"));
+
+        if (rankIdx < 0 || nameIdx < 0) throw new Error("컬럼명을 찾을 수 없습니다.");
 
         let items = dataRows.map(cols => {
           const rank = cols[rankIdx]?.trim();
           const name = cols[nameIdx]?.trim();
           const total = cols[totalIdx]?.trim();
-          if (!rank || !name) return null;
+          if (!rank || isNaN(rank)) return null;
           return { rank: Number(rank), displayName: name, teamKeyName: name, score: total, total };
         }).filter(Boolean).sort((a, b) => a.rank - b.rank);
 
@@ -137,7 +142,6 @@
           const card = document.createElement("div");
           card.className = "card";
           
-          // 💡 순위별 외곽선 클래스 추가
           if (item.rank === 1) card.classList.add("rank-1-card");
           else if (item.rank === 2) card.classList.add("rank-2-card");
           else if (item.rank === 3) card.classList.add("rank-3-card");
@@ -166,6 +170,7 @@
         });
       } catch (err) {
         statusEl.textContent = "오류 발생: " + err.message;
+        console.error(err);
       }
     }
     loadScoreboard();
