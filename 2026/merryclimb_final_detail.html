@@ -53,122 +53,107 @@
   <div id="status" class="loading">데이터 불러오는 중...</div>
   <div id="tableArea"></div>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const teamParam = urlParams.get("team");
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const teamParam = urlParams.get("team") || "";
 
-    const CSV_URL =
-      "https://docs.google.com/spreadsheets/d/1kvBovpQTtlSROqo8euDIVurr8v5MTKiQBd4-gFyXHe4/export?gid=28014312#gid=28014312";
+  // ✅ 요청하신 gid=28014312 적용 및 내보내기 형식 유지
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/1kvBovpQTtlSROqo8euDIVurr8v5MTKiQBd4-gFyXHe4/export?format=csv&gid=28014312";
 
+  if (teamParam) {
     document.getElementById("teamName").innerText = teamParam + " 팀 상세 정보";
+  }
 
-    async function loadDetail() {
-      try {
-        const res = await fetch(CSV_URL);
-        const text = await res.text();
+  async function loadDetail() {
+    try {
+      const res = await fetch(CSV_URL);
+      if (!res.ok) throw new Error("네트워크 응답 오류");
+      const text = await res.text();
 
-        const rows = text
-          .split("\n")
-          .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
+      // 줄바꿈 기호 대응
+      const rows = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
+        .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
-        let teamRows = [];
-        let currentTeam = "";
+      let teamRows = [];
+      let currentTeam = "";
 
-        // CSV는 4번째 줄(인덱스 3)부터 데이터 시작
-        for (let i = 3; i < rows.length; i++) {
-          const row = rows[i];
-          if (!row || row.length < 5) continue;
+      // CSV 데이터 탐색 (시트 구조에 맞춰 4번째 줄부터 시작)
+      for (let i = 3; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length < 5) continue;
 
-          const teamName = row[1] ? row[1].trim() : "";
-          const number = row[2];
-          const name = row[3];
+        // B열(인덱스 1)에 팀명이 있으면 갱신
+        const teamNameFromSheet = row[1];
+        if (teamNameFromSheet) currentTeam = teamNameFromSheet;
 
-          if (teamName) currentTeam = teamName;
-
-          if (
-            currentTeam.replace(/\s+/g, "") ===
-            teamParam.replace(/\s+/g, "")
-          ) {
-            teamRows.push(row);
-          }
+        // 💡 공백 제거 후 팀명 비교 (대조 정확도 향상)
+        if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
+          teamRows.push(row);
         }
-
-        if (teamRows.length === 0) {
-          document.getElementById("status").innerText = "해당 팀 데이터를 찾을 수 없습니다.";
-          return;
-        }
-
-        // ⭐ 자동 인식: 총점은 마지막에서 두 번째 컬럼
-        const totalIndex = teamRows[0].length - 2;
-
-        // ⭐ 자동 인식: 섹터는 4번부터 총점 바로 전까지
-        const sectorStart = 4;
-        const sectorCount = totalIndex - sectorStart;
-
-        // 팀합산은 마지막 컬럼
-        const teamTotal = teamRows[0][teamRows[0].length - 1];
-        document.getElementById("teamTotal").innerText = "팀 총합: " + teamTotal;
-
-        // 표 만들기
-        const table = document.createElement("table");
-
-        const thead = document.createElement("thead");
-        const headRow = document.createElement("tr");
-
-        const headers = ["참가자", "번호"];
-
-        // ⭐ 섹터 헤더 자동 생성
-        for (let i = 1; i <= sectorCount; i++) {
-          headers.push(i + "섹터");
-        }
-
-        headers.push("총점");
-
-        headers.forEach(h => {
-          const th = document.createElement("th");
-          th.innerText = h;
-          headRow.appendChild(th);
-        });
-
-        thead.appendChild(headRow);
-        table.appendChild(thead);
-
-        const tbody = document.createElement("tbody");
-
-        teamRows.forEach(row => {
-          const tr = document.createElement("tr");
-
-          const name = row[3];
-          const number = row[2];
-
-          const total = row[totalIndex];
-
-          const sectors = row.slice(sectorStart, totalIndex);
-
-          const cells = [name, number, ...sectors, total];
-
-          cells.forEach(c => {
-            const td = document.createElement("td");
-            td.innerText = c;
-            tr.appendChild(td);
-          });
-
-          tbody.appendChild(tr);
-        });
-
-        table.appendChild(tbody);
-
-        document.getElementById("status").style.display = "none";
-        document.getElementById("tableArea").appendChild(table);
-
-      } catch (e) {
-        document.getElementById("status").innerText = "데이터 로딩 실패";
-        console.error(e);
       }
-    }
 
-    loadDetail();
-  </script>
+      if (teamRows.length === 0) {
+        document.getElementById("status").innerText = "'" + teamParam + "' 팀의 데이터를 찾을 수 없습니다.";
+        return;
+      }
+
+      // 개인 총점(마지막에서 두 번째) 및 팀 총합(마지막) 인덱스 계산
+      const totalIndex = teamRows[0].length - 2;
+      const teamTotalIndex = teamRows[0].length - 1;
+      const sectorStart = 4;
+      const sectorCount = totalIndex - sectorStart;
+
+      // 팀 총합 표시
+      const teamTotalScore = teamRows[0][teamTotalIndex];
+      document.getElementById("teamTotal").innerText = "팀 총합: " + (teamTotalScore || "0");
+
+      // 테이블 생성 로직
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+
+      const headers = ["참가자", "번호"];
+      for (let i = 1; i <= sectorCount; i++) headers.push(i + "섹터");
+      headers.push("개인 총점");
+
+      headers.forEach(h => {
+        const th = document.createElement("th");
+        th.innerText = h;
+        headRow.appendChild(th);
+      });
+
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      teamRows.forEach(row => {
+        const tr = document.createElement("tr");
+        const name = row[3];
+        const number = row[2];
+        const personalTotal = row[totalIndex];
+        const sectors = row.slice(sectorStart, totalIndex);
+
+        const cells = [name, number, ...sectors, personalTotal];
+        cells.forEach(c => {
+          const td = document.createElement("td");
+          td.innerText = c || "0";
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      document.getElementById("status").style.display = "none";
+      document.getElementById("tableArea").appendChild(table);
+
+    } catch (e) {
+      document.getElementById("status").innerText = "데이터 로딩 실패: 시트 웹 게시 설정을 확인하세요.";
+      console.error(e);
+    }
+  }
+
+  loadDetail();
+</script>
 
 </body>
 </html>
