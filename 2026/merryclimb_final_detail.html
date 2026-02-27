@@ -11,42 +11,18 @@
       margin: 0;
       padding: 20px;
     }
-
-    h1 {
-      margin-bottom: 4px;
-    }
-
-    .team-total {
-      color: #fbbf24;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.85rem;
-    }
-
-    th, td {
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 6px;
-      text-align: center;
-    }
-
-    th {
-      background: rgba(255,255,255,0.1);
-    }
-
-    .loading {
-      margin-top: 40px;
-      text-align: center;
-      color: #9ca3af;
-    }
+    h1 { margin-bottom: 4px; }
+    .team-total { color: #fbbf24; margin-bottom: 20px; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+    th, td { border: 1px solid rgba(255,255,255,0.15); padding: 6px; text-align: center; }
+    th { background: rgba(255,255,255,0.1); }
+    .loading { margin-top: 40px; text-align: center; color: #9ca3af; }
+    .back-btn { display: inline-block; margin-bottom: 15px; color: #9ca3af; text-decoration: none; font-size: 0.85rem; }
   </style>
 </head>
 <body>
 
+  <a href="javascript:history.back()" class="back-btn">← 전체 순위표로 돌아가기</a>
   <h1 id="teamName">팀 상세 정보</h1>
   <div id="teamTotal" class="team-total"></div>
 
@@ -57,7 +33,7 @@
   const urlParams = new URLSearchParams(window.location.search);
   const teamParam = urlParams.get("team") || "";
 
-  // ✅ 요청하신 gid=28014312 적용 및 내보내기 형식 유지
+  // ✅ gid=28014312 및 내보내기 형식 적용
   const CSV_URL = "https://docs.google.com/spreadsheets/d/1kvBovpQTtlSROqo8euDIVurr8v5MTKiQBd4-gFyXHe4/export?format=csv&gid=28014312";
 
   if (teamParam) {
@@ -70,24 +46,25 @@
       if (!res.ok) throw new Error("네트워크 응답 오류");
       const text = await res.text();
 
-      // 줄바꿈 기호 대응
       const rows = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
         .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
       let teamRows = [];
-      let currentTeam = "";
+      let lastIdentifiedTeam = ""; // 💡 병합된 셀 처리를 위해 팀명을 기억합니다.
 
       // CSV 데이터 탐색 (시트 구조에 맞춰 4번째 줄부터 시작)
       for (let i = 3; i < rows.length; i++) {
         const row = rows[i];
         if (!row || row.length < 5) continue;
 
-        // B열(인덱스 1)에 팀명이 있으면 갱신
+        // B열(인덱스 1)에 팀명이 있으면 갱신, 없으면 기존 팀명 유지 (병합 대응)
         const teamNameFromSheet = row[1];
-        if (teamNameFromSheet) currentTeam = teamNameFromSheet;
+        if (teamNameFromSheet && teamNameFromSheet.trim() !== "") {
+          lastIdentifiedTeam = teamNameFromSheet.trim();
+        }
 
-        // 💡 공백 제거 후 팀명 비교 (대조 정확도 향상)
-        if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
+        // 💡 기억하고 있는 팀명과 비교
+        if (lastIdentifiedTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
           teamRows.push(row);
         }
       }
@@ -97,17 +74,14 @@
         return;
       }
 
-      // 개인 총점(마지막에서 두 번째) 및 팀 총합(마지막) 인덱스 계산
       const totalIndex = teamRows[0].length - 2;
       const teamTotalIndex = teamRows[0].length - 1;
       const sectorStart = 4;
       const sectorCount = totalIndex - sectorStart;
 
-      // 팀 총합 표시
       const teamTotalScore = teamRows[0][teamTotalIndex];
       document.getElementById("teamTotal").innerText = "팀 총합: " + (teamTotalScore || "0");
 
-      // 테이블 생성 로직
       const table = document.createElement("table");
       const thead = document.createElement("thead");
       const headRow = document.createElement("tr");
