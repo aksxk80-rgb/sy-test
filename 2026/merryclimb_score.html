@@ -5,11 +5,10 @@
   <title>메리클라임 예선 스코어보드</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* 🎨 전체 테마 및 배경 설정 유지 */
     body {
       font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
       margin: 0;
-      background: #0d1222; /* image_1.png 다크 네이비 배경 적용 */
+      background: #0b1020;
       color: #f5f5f5;
     }
     header {
@@ -35,12 +34,11 @@
       color: #9ca3af;
     }
     
-    /* 🎨 사용자 칸 디자인 유지 */
     .card {
-      background: rgba(17,24,39,0.95); /* 흰색 배경에서 다크 모드로 다시 복구 */
-      border-radius: 10px; /* image_1.png 둥근 모서리 적용 */
-      padding: 12px; /* image_1.png 패딩 비율 */
-      margin-bottom: 8px;
+      background: rgba(17,24,39,0.95);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -49,41 +47,36 @@
       cursor: pointer;
     }
 
-    /* 🎨 1, 2, 3위 외곽선 3px 두껍게 강조 유지 */
+    /* 💡 요청 반영: 1, 2, 3위 외곽선 두께 3px 및 메달 색상 강조 */
     .rank-1-card { border: 3px solid #fbbf24 !important; }
-    .rank-2-card { border: 3px solid #e5e7eb !important; }
+    .rank-2-card { border: 3px solid #cbd5e1 !important; }
     .rank-3-card { border: 3px solid #f97316 !important; }
 
-    .card-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .card-left { display: flex; align-items: center; gap: 15px; min-width: 0; }
     
-    /* 💡 요청 반영: 1, 2, 3위 메달 디자인 복구 (이모지 사용) */
+    /* 원형 배지 디자인 */
     .rank-badge {
-      width: 40px;
-      height: 40px;
-      line-height: 40px;
+      width: 46px;
+      height: 46px;
       text-align: center;
       font-weight: 800;
-      font-size: 0.9rem;
-      border-radius: 50%; /* 원형 모양 유지 */
-      background: #e5e7eb; /* 4위부터 기본 배경 */
-      color: #111827; /* 기본 글씨 검정 */
+      font-size: 1.1rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e293b;
+      color: #e5e7eb;
       border: 1px solid rgba(75,85,99,0.9);
       flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
     }
-    
-    /* 💡 요청 반영: 메달 컬러 삭제 (외곽선만 유지) */
-    /* .rank-1, .rank-2, .rank-3 클래스 삭제 */
 
-    /* 🎨 흰색 칸에 맞춘 글씨색을 다시 다크 모드에 맞게 복구 */
-    .team-name { font-size: 0.95rem; font-weight: 700; color: #ffffff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 170px; } /* 팀명: 흰색 */
-    .team-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; } /* 팀ID: 연한 회색 */
-    
+    .team-name { font-size: 1rem; font-weight: 600; color: #ffffff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 170px; }
+    .team-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
     .card-right { text-align: right; font-size: 0.85rem; flex-shrink: 0; }
-    .score { font-weight: 800; font-size: 1.1rem; color: #fbbf24; } /* 점수: 노란색 강조 */
-    .score-label { font-size: 0.72rem; color: #9ca3af; } /* 팀 점수 라벨 */
-    .total-score { font-size: 0.78rem; margin-top: 2px; color: #9ca3af; } /* 총점 라벨 */
-    
+    .score { font-weight: 700; font-size: 1.1rem; color: #fbbf24; }
+    .score-label { font-size: 0.72rem; color: #9ca3af; }
+    .total-score { font-size: 0.78rem; margin-top: 2px; color: #9ca3af; }
     .loading { text-align: center; font-size: 0.9rem; margin-top: 24px; color: #9ca3af; }
   </style>
 </head>
@@ -96,14 +89,14 @@
   <div class="container">
     <div class="board-header">
       <span>실시간 순위</span>
-      <span style="font-size: 0.8rem; color: #6b7280;">※ 시트 수정 후 새로고침 시 반영</span>
+      <span style="font-size: 0.8rem; color: #6b7280;">※ 자동 동기화 중</span>
     </div>
     <div id="status" class="loading">데이터 불러오는 중...</div>
     <div id="board"></div>
   </div>
 
   <script>
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642"; /* CSV_URL 유지 */
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
 
     async function loadScoreboard() {
       const statusEl = document.getElementById("status");
@@ -113,9 +106,10 @@
         const res = await fetch(CSV_URL);
         const text = await res.text();
 
-        let rows = text.split("\n")
+        // 💡 가장 안정적이었던 파싱 로직 복구
+        let rows = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
           .map(r => r.replace(/^\uFEFF/, "").trim())
-          .filter(r => r !== "");
+          .filter(r => r.replace(/,/g, "").trim() !== "");
 
         const header = rows[0].split(",");
         const dataRows = rows.slice(1).map(r => r.split(","));
@@ -139,22 +133,24 @@
           const card = document.createElement("div");
           card.className = "card";
           
-          // 🎨 1, 2, 3위 외곽선 클래스 추가 유지
+          // 💡 순위별 외곽선 클래스 적용
           if (item.rank === 1) card.classList.add("rank-1-card");
           else if (item.rank === 2) card.classList.add("rank-2-card");
           else if (item.rank === 3) card.classList.add("rank-3-card");
 
           card.onclick = () => {
-            // 상세 페이지 경로 유지
             window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
           };
 
-          // 💡 요청 반영: 메달 이모지 복구 및 다크 모드에 맞춘 내부 HTML 구조 수정
+          // 🥇, 🥈, 🥉 메달 이모지 복구
+          let rankBadgeText = item.rank + "위";
+          if (item.rank === 1) rankBadgeText = "🥇";
+          else if (item.rank === 2) rankBadgeText = "🥈";
+          else if (item.rank === 3) rankBadgeText = "🥉";
+
           card.innerHTML = `
             <div class="card-left">
-              <div class="rank-badge">
-                ${item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : item.rank + '위'}
-              </div>
+              <div class="rank-badge">${rankBadgeText}</div>
               <div>
                 <div class="team-name">${item.displayName}</div>
                 <div class="team-sub">팀ID: ${item.teamKeyName}</div>
