@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family:sans-serif; background:#0f172a; color:white; text-align:center; padding:20px; }
+    h1 { margin-bottom:20px; }
+    table { width:100%; max-width:600px; margin:20px auto; border-collapse:collapse; }
+    th, td { padding:8px; }
+    tr:nth-child(even) { background:#1e293b; }
+    .gold { background:#facc15; color:black; font-weight:bold; }
+    .silver { background:#cbd5e1; color:black; font-weight:bold; }
+    .bronze { background:#f97316; color:black; font-weight:bold; }
+  </style>
+</head>
+<body>
+  <h1>1주차 TOP 10</h1>
+  <div id="ranking"></div>
+
+  <script>
+    // 페이지 로드 시 서버 함수 호출
+    document.addEventListener("DOMContentLoaded", function () {
+  google.script.run
+    .withSuccessHandler(render)
+    .getRankingData("1주차");
+});
+
+    // 결과를 화면에 그려주는 함수
+    function render(data) {
+      const container = document.getElementById("ranking");
+      container.innerHTML = "";
+      const table = document.createElement("table");
+      table.innerHTML = `<tr><th>순위</th><th>ID</th><th>성공</th></tr>`;
+
+      data.slice(0,10).forEach(row => {
+        let medalClass="", medalIcon="";
+        if (row.rank===1){ medalClass="gold"; medalIcon="🥇"; }
+        if (row.rank===2){ medalClass="silver"; medalIcon="🥈"; }
+        if (row.rank===3){ medalClass="bronze"; medalIcon="🥉"; }
+
+        const tr = document.createElement("tr");
+        tr.className = medalClass;
+        tr.innerHTML = `<td>${medalIcon} ${row.rank}</td><td>${row.id}</td><td>${row.score}</td>`;
+        table.appendChild(tr);
+      });
+
+      container.appendChild(table);
+    }
+  </script>
+</body>
+</html>
