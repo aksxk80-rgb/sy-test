@@ -6,159 +6,166 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       margin: 0;
-      background: #0f172a; /* 조금 더 깊은 다크 네이비 */
-      color: #f1f5f9;
+      background: #0b1020;
+      color: #f5f5f5;
     }
     header {
-      padding: 24px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      background: linear-gradient(135deg, #1e293b, #0f172a);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(135deg, #1f2937, #111827);
       text-align: center;
     }
-    header h1 {
-      margin: 0;
-      font-size: 1.6rem;
-      letter-spacing: -0.5px;
-    }
-    header p {
-      margin: 8px 0 0;
-      font-size: 0.9rem;
-      color: #94a3b8;
-    }
+    header h1 { margin: 0; font-size: 1.4rem; }
+    header p { margin: 4px 0 0; font-size: 0.85rem; color: #9ca3af; }
+    
     .container {
       max-width: 600px;
       margin: 0 auto;
-      padding: 16px 16px 40px;
+      padding: 12px 12px 32px;
     }
     .board-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 10px 0 16px;
+      margin: 8px 0 12px;
       font-size: 0.85rem;
-      color: #64748b;
+      color: #9ca3af;
     }
     
-    /* 💡 카드 기본 디자인 */
+    /* 카드 디자인 */
     .card {
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(10px);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 12px;
+      background: rgba(17,24,39,0.95);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      border: 1px solid rgba(255,255,255,0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.35);
+      border: 1px solid rgba(148,163,184,0.25);
       cursor: pointer;
     }
-    .card:active { transform: scale(0.98); }
 
     /* 💡 1, 2, 3위 외곽선 두껍게 강조 */
-    .card.rank-1-card { 
-      border: 2.5px solid #fbbf24; /* 금색 */
-      box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
-    }
-    .card.rank-2-card { 
-      border: 2.5px solid #cbd5e1; /* 은색 */
-      box-shadow: 0 0 15px rgba(203, 213, 225, 0.15);
-    }
-    .card.rank-3-card { 
-      border: 2.5px solid #f97316; /* 동색 */
-      box-shadow: 0 0 15px rgba(249, 115, 22, 0.15);
-    }
+    .rank-1-card { border: 3px solid #fbbf24 !important; }
+    .rank-2-card { border: 3px solid #e5e7eb !important; }
+    .rank-3-card { border: 3px solid #f97316 !important; }
 
-    .card-left {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      min-width: 0;
-    }
+    .card-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    
     .rank-badge {
-      width: 44px;
-      height: 44px;
-      line-height: 44px;
+      width: 40px;
       text-align: center;
-      font-weight: 800;
-      font-size: 0.95rem;
-      border-radius: 12px;
-      background: #334155;
-      color: #f1f5f9;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 4px 0;
+      border-radius: 999px;
+      background: #111827;
+      color: #e5e7eb;
+      border: 1px solid rgba(75,85,99,0.9);
       flex-shrink: 0;
     }
     
-    /* 💡 순위별 배지 그라데이션 */
-    .rank-1 { background: linear-gradient(135deg, #fde047, #fbbf24); color: #451a03; }
-    .rank-2 { background: linear-gradient(135deg, #f1f5f9, #94a3b8); color: #1e293b; }
-    .rank-3 { background: linear-gradient(135deg, #fed7aa, #f97316); color: #431407; }
+    /* 배지 컬러 */
+    .rank-1 { background: linear-gradient(135deg, #ffd700, #fbbf24) !important; color: #111827 !important; border: none !important; }
+    .rank-2 { background: linear-gradient(135deg, #e5e7eb, #9ca3af) !important; color: #111827 !important; border: none !important; }
+    .rank-3 { background: linear-gradient(135deg, #f59e0b, #f97316) !important; color: #111827 !important; border: none !important; }
 
-    .team-name {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 2px;
-    }
-    .team-sub {
-      font-size: 0.8rem;
-      color: #94a3b8;
-    }
-    .card-right {
-      text-align: right;
-      min-width: 80px;
-    }
-    .score {
-      font-weight: 800;
-      font-size: 1.3rem;
-      color: #fbbf24; /* 메인 점수 강조 */
-    }
-    .score-label {
-      font-size: 0.7rem;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .loading { text-align: center; margin-top: 50px; color: #64748b; }
+    .team-name { font-size: 0.95rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 170px; }
+    .team-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
+    .card-right { text-align: right; font-size: 0.85rem; flex-shrink: 0; }
+    .score { font-weight: 700; font-size: 1rem; color: #fbbf24; }
+    .score-label { font-size: 0.72rem; color: #9ca3af; }
+    .total-score { font-size: 0.78rem; margin-top: 2px; color: #9ca3af; }
+    .loading { text-align: center; font-size: 0.9rem; margin-top: 24px; color: #9ca3af; }
   </style>
 </head>
 <body>
   <header>
     <h1>메리클라임 예선 스코어보드</h1>
-    <p>실시간 팀 순위 · 자동 업데이트</p>
+    <p>실시간 팀 순위 · 스프레드시트 기반 자동 업데이트</p>
   </header>
 
   <div class="container">
     <div class="board-header">
-      <span>실시간 리더보드</span>
-      <span style="font-size: 0.75rem;">※ 자동 동기화 중</span>
+      <span>실시간 순위</span>
+      <span style="font-size: 0.8rem; color: #6b7280;">※ 시트 수정 후 새로고침 시 반영</span>
     </div>
-    <div id="status" class="loading">데이터를 로드하고 있습니다...</div>
+    <div id="status" class="loading">데이터 불러오는 중...</div>
     <div id="board"></div>
   </div>
 
   <script>
-    // CSV_URL 및 기존 스크립트 로직 동일하게 유지
-    // ... (item 반복문 부분에서 카드 클래스 추가 로직만 변경)
-    
-    /* 💡 수정된 JS 반복문 일부 */
-    items.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "card";
-      
-      // 순위에 따른 외곽선 클래스 추가
-      if (item.rank === 1) card.classList.add("rank-1-card");
-      else if (item.rank === 2) card.classList.add("rank-2-card");
-      else if (item.rank === 3) card.classList.add("rank-3-card");
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
 
-      card.onclick = () => {
-        window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
-      };
-      
-      // ... 이하 배지 생성 및 정보 삽입 로직 동일
-    });
+    async function loadScoreboard() {
+      const statusEl = document.getElementById("status");
+      const boardEl = document.getElementById("board");
+
+      try {
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
+
+        let rows = text.split("\n")
+          .map(r => r.replace(/^\uFEFF/, "").trim())
+          .filter(r => r !== "");
+
+        const header = rows[0].split(",");
+        const dataRows = rows.slice(1).map(r => r.split(","));
+
+        const rankIdx = header.findIndex(h => h.trim() === "팀 순위");
+        const nameIdx = header.findIndex(h => h.trim() === "팀명");
+        const totalIdx = header.findIndex(h => h.trim() === "총점");
+
+        let items = dataRows.map(cols => {
+          const rank = cols[rankIdx]?.trim();
+          const name = cols[nameIdx]?.trim();
+          const total = cols[totalIdx]?.trim();
+          if (!rank || !name) return null;
+          return { rank: Number(rank), displayName: name, teamKeyName: name, score: total, total };
+        }).filter(Boolean).sort((a, b) => a.rank - b.rank);
+
+        boardEl.innerHTML = "";
+        statusEl.style.display = "none";
+
+        items.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+          
+          // 💡 순위별 외곽선 클래스 추가
+          if (item.rank === 1) card.classList.add("rank-1-card");
+          else if (item.rank === 2) card.classList.add("rank-2-card");
+          else if (item.rank === 3) card.classList.add("rank-3-card");
+
+          card.onclick = () => {
+            window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+          };
+
+          card.innerHTML = `
+            <div class="card-left">
+              <div class="rank-badge ${item.rank === 1 ? 'rank-1' : item.rank === 2 ? 'rank-2' : item.rank === 3 ? 'rank-3' : ''}">
+                ${item.rank}위
+              </div>
+              <div>
+                <div class="team-name">${item.displayName}</div>
+                <div class="team-sub">팀ID: ${item.teamKeyName}</div>
+              </div>
+            </div>
+            <div class="card-right">
+              <div class="score">${item.score}</div>
+              <div class="score-label">팀 점수</div>
+              <div class="total-score">총점: ${item.total}</div>
+            </div>
+          `;
+          boardEl.appendChild(card);
+        });
+      } catch (err) {
+        statusEl.textContent = "오류 발생: " + err.message;
+      }
+    }
+    loadScoreboard();
   </script>
 </body>
 </html>
