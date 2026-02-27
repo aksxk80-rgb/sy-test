@@ -34,12 +34,11 @@
       color: #9ca3af;
     }
     
-    /* 카드 디자인 */
     .card {
       background: rgba(17,24,39,0.95);
       border-radius: 10px;
       padding: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -48,35 +47,39 @@
       cursor: pointer;
     }
 
-    /* 💡 1, 2, 3위 외곽선 두껍게 강조 */
-    .rank-1-card { border: 3px solid #fbbf24 !important; }
-    .rank-2-card { border: 3px solid #e5e7eb !important; }
-    .rank-3-card { border: 3px solid #f97316 !important; }
+    /* 💡 요청 반영: 1, 2, 3위 외곽선 두께 3px 및 메달 색상과 동일하게 설정 */
+    .rank-1-card { border: 3px solid #fbbf24 !important; } /* 금색 */
+    .rank-2-card { border: 3px solid #cbd5e1 !important; } /* 은색 */
+    .rank-3-card { border: 3px solid #f97316 !important; } /* 동색 */
 
-    .card-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .card-left { display: flex; align-items: center; gap: 15px; min-width: 0; }
     
+    /* 💡 요청 반영: 원형 메달 디자인 */
     .rank-badge {
-      width: 40px;
+      width: 46px;
+      height: 46px;
       text-align: center;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 4px 0;
-      border-radius: 999px;
-      background: #111827;
+      font-weight: 800;
+      font-size: 0.95rem;
+      border-radius: 50%; /* 원형 메달 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e293b;
       color: #e5e7eb;
       border: 1px solid rgba(75,85,99,0.9);
       flex-shrink: 0;
     }
     
-    /* 배지 컬러 */
+    /* 💡 요청 반영: 1, 2, 3등 메달 컬러 (외곽선과 통일) */
     .rank-1 { background: linear-gradient(135deg, #ffd700, #fbbf24) !important; color: #111827 !important; border: none !important; }
-    .rank-2 { background: linear-gradient(135deg, #e5e7eb, #9ca3af) !important; color: #111827 !important; border: none !important; }
+    .rank-2 { background: linear-gradient(135deg, #f1f5f9, #cbd5e1) !important; color: #111827 !important; border: none !important; }
     .rank-3 { background: linear-gradient(135deg, #f59e0b, #f97316) !important; color: #111827 !important; border: none !important; }
 
-    .team-name { font-size: 0.95rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 170px; }
+    .team-name { font-size: 1rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 170px; }
     .team-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
     .card-right { text-align: right; font-size: 0.85rem; flex-shrink: 0; }
-    .score { font-weight: 700; font-size: 1rem; color: #fbbf24; }
+    .score { font-weight: 700; font-size: 1.1rem; color: #fbbf24; }
     .score-label { font-size: 0.72rem; color: #9ca3af; }
     .total-score { font-size: 0.78rem; margin-top: 2px; color: #9ca3af; }
     .loading { text-align: center; font-size: 0.9rem; margin-top: 24px; color: #9ca3af; }
@@ -85,13 +88,13 @@
 <body>
   <header>
     <h1>메리클라임 예선 스코어보드</h1>
-    <p>실시간 팀 순위 · 스프레드시트 기반 자동 업데이트</p>
+    <p>실시간 팀 순위 · 자동 업데이트</p>
   </header>
 
   <div class="container">
     <div class="board-header">
       <span>실시간 순위</span>
-      <span style="font-size: 0.8rem; color: #6b7280;">※ 시트 수정 후 새로고침 시 반영</span>
+      <span style="font-size: 0.8rem; color: #6b7280;">※ 자동 동기화 중</span>
     </div>
     <div id="status" class="loading">데이터 불러오는 중...</div>
     <div id="board"></div>
