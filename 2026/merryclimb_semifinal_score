@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>메리클라임 예선 스코어보드</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      background: #0b1020;
+      color: #f5f5f5;
+    }
+    header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(135deg, #1f2937, #111827);
+      text-align: center;
+    }
+    header h1 { margin: 0; font-size: 1.4rem; }
+    header p { margin: 4px 0 0; font-size: 0.85rem; color: #9ca3af; }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 12px 12px 32px;
+    }
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0 12px;
+      font-size: 0.85rem;
+      color: #9ca3af;
+    }
+    
+    .card {
+      background: rgba(17,24,39,0.95);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.35);
+      border: 1px solid rgba(148,163,184,0.25);
+      cursor: pointer;
+    }
+
+    /* 💡 1, 2, 3위 외곽선 3px 강조 유지 */
+    .rank-1-card { border: 3px solid #fbbf24 !important; }
+    .rank-2-card { border: 3px solid #e5e7eb !important; }
+    .rank-3-card { border: 3px solid #f97316 !important; }
+
+    .card-left { display: flex; align-items: center; gap: 15px; min-width: 0; }
+    
+    /* 💡 순위 배지 디자인 */
+    .rank-badge {
+      width: 46px;
+      height: 46px;
+      text-align: center;
+      font-weight: 800;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e293b;
+      color: #e5e7eb;
+      border: 1px solid rgba(75,85,99,0.9);
+      flex-shrink: 0;
+      /* 💡 요청 반영: 4위 이하 순위 글씨 크기 축소 */
+      font-size: 0.85rem; 
+    }
+
+    /* 💡 1, 2, 3위는 메달 이모지가 들어가므로 크기 유지 */
+    .rank-1-badge, .rank-2-badge, .rank-3-badge {
+      font-size: 1.1rem;
+    }
+
+    .team-name { font-size: 1rem; font-weight: 600; color: #ffffff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 170px; }
+    
+    /* 💡 요청 반영: '팀 ID' -> '팀명' 문구 변경 */
+    .team-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
+    
+    .card-right { text-align: right; font-size: 0.85rem; flex-shrink: 0; }
+    .score { font-weight: 700; font-size: 1.1rem; color: #fbbf24; }
+    .score-label { font-size: 0.72rem; color: #9ca3af; }
+    .total-score { font-size: 0.78rem; margin-top: 2px; color: #9ca3af; }
+    .loading { text-align: center; font-size: 0.9rem; margin-top: 24px; color: #9ca3af; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>메리클라임 예선 스코어보드</h1>
+    <p>실시간 팀 순위 · 스프레드시트 기반 자동 업데이트</p>
+  </header>
+
+  <div class="container">
+    <div class="board-header">
+      <span>실시간 순위</span>
+      <span style="font-size: 0.8rem; color: #6b7280;">※ 자동 동기화 중</span>
+    </div>
+    <div id="status" class="loading">데이터 불러오는 중...</div>
+    <div id="board"></div>
+  </div>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
+
+    async function loadScoreboard() {
+      const statusEl = document.getElementById("status");
+      const boardEl = document.getElementById("board");
+
+      try {
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
+
+        let rows = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
+          .map(r => r.replace(/^\uFEFF/, "").trim())
+          .filter(r => r.replace(/,/g, "").trim() !== "");
+
+        const header = rows[0].split(",");
+        const dataRows = rows.slice(1).map(r => r.split(","));
+
+        const rankIdx = header.findIndex(h => h.trim() === "팀 순위");
+        const nameIdx = header.findIndex(h => h.trim() === "팀명");
+        const totalIdx = header.findIndex(h => h.trim() === "총점");
+
+        let items = dataRows.map(cols => {
+          const rank = cols[rankIdx]?.trim();
+          const name = cols[nameIdx]?.trim();
+          const total = cols[totalIdx]?.trim();
+          if (!rank || !name) return null;
+          return { rank: Number(rank), displayName: name, teamKeyName: name, score: total, total };
+        }).filter(Boolean).sort((a, b) => a.rank - b.rank);
+
+        boardEl.innerHTML = "";
+        statusEl.style.display = "none";
+
+        items.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+          
+          let rankBadgeClass = "rank-badge";
+          if (item.rank === 1) {
+            card.classList.add("rank-1-card");
+            rankBadgeClass += " rank-1-badge";
+          } else if (item.rank === 2) {
+            card.classList.add("rank-2-card");
+            rankBadgeClass += " rank-2-badge";
+          } else if (item.rank === 3) {
+            card.classList.add("rank-3-card");
+            rankBadgeClass += " rank-3-badge";
+          }
+
+          card.onclick = () => {
+            window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+          };
+
+          let rankBadgeText = item.rank + "위";
+          if (item.rank === 1) rankBadgeText = "🥇";
+          else if (item.rank === 2) rankBadgeText = "🥈";
+          else if (item.rank === 3) rankBadgeText = "🥉";
+
+          card.innerHTML = `
+            <div class="card-left">
+              <div class="${rankBadgeClass}">${rankBadgeText}</div>
+              <div>
+                <div class="team-name">${item.displayName}</div>
+                <div class="team-sub">팀명: ${item.teamKeyName}</div>
+              </div>
+            </div>
+            <div class="card-right">
+              <div class="score">${item.score}</div>
+              <div class="score-label">팀 점수</div>
+              <div class="total-score">총점: ${item.total}</div>
+            </div>
+          `;
+          boardEl.appendChild(card);
+        });
+      } catch (err) {
+        statusEl.textContent = "오류 발생: " + err.message;
+      }
+    }
+    loadScoreboard();
+  </script>
+</body>
+</html>
