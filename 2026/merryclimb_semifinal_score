@@ -154,7 +154,7 @@
           }
 
           card.onclick = () => {
-            window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+            window.location.href = `/sy-test/2026/merryclimb_semifinal_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
           };
 
           let rankBadgeText = item.rank + "위";
