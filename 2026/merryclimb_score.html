@@ -8,26 +8,60 @@
     body { font-family: 'Pretendard', system-ui, sans-serif; margin: 0; background: linear-gradient(180deg, #4facfe 0%, #00f2fe 40%, #fdfbfb 100%); background-attachment: fixed; color: #1e293b; min-height: 100vh; }
     header { padding: 40px 20px 20px; text-align: center; }
     header h1 { margin: 0; font-size: 2rem; font-weight: 900; color: #ffffff; text-shadow: 0 4px 10px rgba(0,0,0,0.15); letter-spacing: -1px; }
+
     .container { max-width: 600px; margin: 0 auto; padding: 0 16px 60px; }
+
+    /* 🔍 검색창 스타일 */
+    .search-wrapper {
+      margin: 10px 0 25px;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1e293b;
+      box-sizing: border-box;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      border-color: #0284c7;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(2, 132, 199, 0.15);
+    }
+    .search-input::placeholder { color: #94a3b8; }
+
     .board-status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
     .live-indicator { display: flex; align-items: center; gap: 6px; color: #ff4d4d; font-weight: 800; font-size: 0.85rem; }
     .live-dot { width: 10px; height: 10px; background-color: #ff4d4d; border-radius: 50%; animation: blink 1.2s infinite; }
     @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+    
     .main-label { font-size: 1.1rem; font-weight: 800; color: #075985; }
+
     .card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); border-radius: 16px; padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0, 119, 182, 0.1); border: 1px solid rgba(255, 255, 255, 0.5); cursor: pointer; transition: transform 0.1s ease; }
     .card:active { transform: scale(0.98); }
     .rank-1-card { background: #fffbeb !important; border: 3px solid #f59e0b !important; }
     .rank-2-card { background: #f8fafc !important; border: 3px solid #94a3b8 !important; }
     .rank-3-card { background: #fff7ed !important; border: 3px solid #ea580c !important; }
+    
     .card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     .rank-badge { width: 48px; height: 48px; text-align: center; font-weight: 900; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: white; flex-shrink: 0; }
     .team-info { display: flex; flex-direction: column; }
-    .team-name { font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+    .team-name { font-size: 1.1rem; font-weight: 800; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .team-sub { font-size: 0.8rem; color: #64748b; margin-top: 1px; }
-    .card-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+
+    .card-right { text-align: right; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
     .t-score { font-size: 1.4rem; color: #0f172a; font-weight: 900; }
     .total-score-label { font-size: 0.85rem; color: #64748b; font-weight: 700; }
+    
     .loading { text-align: center; font-size: 1rem; margin-top: 50px; color: #ffffff; font-weight: 600; }
+    .no-result { text-align: center; padding: 40px; color: #075985; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -36,48 +70,48 @@
   </header>
 
   <div class="container">
+    <div class="search-wrapper">
+      <input type="text" id="teamSearch" class="search-input" placeholder="우리 팀 이름을 검색해 보세요!" oninput="filterTeams()">
+    </div>
+
     <div class="board-status-bar">
       <div class="main-label">준결승 실시간 순위</div>
       <div class="live-indicator">
         <div class="live-dot"></div> LIVE UPDATING
       </div>
     </div>
+    
     <div id="status" class="loading">데이터를 통합하는 중...</div>
     <div id="board"></div>
   </div>
 
   <script>
     const SPREADSHEET_ID = "1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8";
-    const CSV_URL_RANK = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=914454642`; // 순위표 탭
-    const CSV_URL_T = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=28014312`;    // T데이터 탭
+    const CSV_URL_RANK = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=914454642`;
+    const CSV_URL_T = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=28014312`;
+
+    let allTeams = []; // 전체 데이터를 담아둘 변수
 
     async function loadScoreboard() {
-      const statusEl = document.getElementById("status");
-      const boardEl = document.getElementById("board");
-
       try {
         const [resRank, resT] = await Promise.all([ fetch(CSV_URL_RANK), fetch(CSV_URL_T) ]);
         const textRank = await resRank.text();
         const textT = await resT.text();
 
-        // [1] T 데이터 가공 (AD열에서 합계 가져오기)
         const rowsT = textT.split("\n").map(r => r.split(","));
         const tMap = new Map();
-        const AD_COL_IDX = 29; // AD열 (A=0 ... AD=29)
-        const TEAM_NAME_IDX = 1; // B열 (팀명이 적힌 열)
+        const AD_COL_IDX = 29; 
+        const TEAM_NAME_IDX = 1; 
 
         rowsT.forEach(row => {
           const teamName = row[TEAM_NAME_IDX]?.trim();
           const tSumValue = row[AD_COL_IDX]?.trim();
-          
-          // 팀명이 있고 AD열에 값이 있는 경우만 저장
           if (teamName && tSumValue && tSumValue !== "" && tSumValue !== "T합계") {
-            const cleanName = teamName.replace(/\s+/g, ""); // 공백 제거 매칭용
+            const cleanName = teamName.replace(/\s+/g, "");
             tMap.set(cleanName, tSumValue);
           }
         });
 
-        // [2] 순위표 데이터 가공
         let rowsRank = textRank.replace(/\r/g, "").split("\n")
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
@@ -89,57 +123,75 @@
         const nameIdx = header.findIndex(h => h.includes("팀명"));
         const totalIdx = header.findIndex(h => h.includes("총점"));
 
-        let items = dataRows.map(cols => {
+        allTeams = dataRows.map(cols => {
           const rank = cols[rankIdx]?.trim();
           const rawName = cols[nameIdx]?.trim();
           const total = cols[totalIdx]?.trim();
-          
           const cleanName = rawName ? rawName.replace(/\s+/g, "") : "";
-          const tValue = tMap.get(cleanName) || "0"; // 매칭된 T 합계
+          const tValue = tMap.get(cleanName) || "0";
 
           if (!rank || !rawName) return null;
           return { rank: Number(rank), displayName: rawName, teamKeyName: rawName, total: total || "0", tValue: tValue };
         }).filter(Boolean).sort((a, b) => a.rank - b.rank);
 
-        boardEl.innerHTML = "";
-        statusEl.style.display = "none";
+        document.getElementById("status").style.display = "none";
+        filterTeams(); // 데이터 로드 후 필터링 적용 (기존 검색어 유지 대비)
 
-        items.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "card";
-          
-          let rankBadgeClass = "rank-badge";
-          let rankBadgeText = item.rank + "위";
-          if (item.rank === 1) { card.classList.add("rank-1-card"); rankBadgeText = "🥇"; }
-          else if (item.rank === 2) { card.classList.add("rank-2-card"); rankBadgeText = "🥈"; }
-          else if (item.rank === 3) { card.classList.add("rank-3-card"); rankBadgeText = "🥉"; }
-
-          card.onclick = () => {
-            window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
-          };
-
-          card.innerHTML = `
-            <div class="card-left">
-              <div class="${rankBadgeClass}">${rankBadgeText}</div>
-              <div class="team-info">
-                <div class="team-name">${item.displayName}</div>
-                <div class="team-sub">팀명: ${item.teamKeyName}</div>
-              </div>
-            </div>
-            <div class="card-right">
-              <div class="t-score">${item.tValue} T</div>
-              <div class="total-score-label">총합: ${item.total}</div>
-            </div>
-          `;
-          boardEl.appendChild(card);
-        });
       } catch (err) {
-        statusEl.textContent = "데이터 연동 중 오류가 발생했습니다.";
+        document.getElementById("status").textContent = "데이터 로딩 중 오류 발생";
         console.error(err);
       }
     }
+
+    // 🔍 팀 필터링 및 렌더링 함수
+    function filterTeams() {
+      const searchTerm = document.getElementById("teamSearch").value.toLowerCase().replace(/\s+/g, "");
+      const boardEl = document.getElementById("board");
+      
+      const filtered = allTeams.filter(team => 
+        team.displayName.toLowerCase().replace(/\s+/g, "").includes(searchTerm)
+      );
+
+      boardEl.innerHTML = "";
+
+      if (filtered.length === 0) {
+        boardEl.innerHTML = `<div class="no-result">검색 결과와 일치하는 팀이 없습니다. 🧗</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+        
+        let rankBadgeClass = "rank-badge";
+        let rankBadgeText = item.rank + "위";
+        if (item.rank === 1) { card.classList.add("rank-1-card"); rankBadgeText = "🥇"; }
+        else if (item.rank === 2) { card.classList.add("rank-2-card"); rankBadgeText = "🥈"; }
+        else if (item.rank === 3) { card.classList.add("rank-3-card"); rankBadgeText = "🥉"; }
+
+        card.onclick = () => {
+          window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+        };
+
+        card.innerHTML = `
+          <div class="card-left">
+            <div class="${rankBadgeClass}">${rankBadgeText}</div>
+            <div class="team-info">
+              <div class="team-name">${item.displayName}</div>
+              <div class="team-sub">팀명: ${item.teamKeyName}</div>
+            </div>
+          </div>
+          <div class="card-right">
+            <div class="t-score">${item.tValue} T</div>
+            <div class="total-score-label">총합: ${item.total}</div>
+          </div>
+        `;
+        boardEl.appendChild(card);
+      });
+    }
+
     loadScoreboard();
-    setInterval(loadScoreboard, 30000);
+    setInterval(loadScoreboard, 30000); // 30초마다 데이터 갱신
   </script>
 </body>
 </html>
