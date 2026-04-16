@@ -5,106 +5,149 @@
   <title>메리클라임 써머 준결승</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    /* 🌊 여름 해변 테마 배경 */
     body {
       font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
       margin: 0;
-      background: #0b1020;
-      color: #f5f5f5;
+      background: linear-gradient(180deg, #4facfe 0%, #00f2fe 40%, #fdfbfb 100%);
+      background-attachment: fixed;
+      color: #1e293b;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
+
+    /* 🌊 애니메이션 파도 효과 */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: url('https://www.transparenttextures.com/patterns/cubes.png'); /* 미세한 질감 */
+      opacity: 0.1;
+      pointer-events: none;
+    }
+
     header {
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: linear-gradient(135deg, #1f2937, #111827);
+      padding: 32px 20px;
       text-align: center;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-    header h1 { margin: 0; font-size: 1.4rem; }
-    header p { margin: 4px 0 0; font-size: 0.85rem; color: #9ca3af; }
-    
+    header h1 { 
+      margin: 0; 
+      font-size: 1.8rem; 
+      letter-spacing: -0.5px;
+      font-weight: 800;
+    }
+    header p { margin: 8px 0 0; font-size: 0.95rem; opacity: 0.9; }
+
     .container {
       max-width: 600px;
       margin: 0 auto;
-      padding: 12px 12px 32px;
+      padding: 12px 16px 60px;
+      position: relative;
+      z-index: 1;
     }
+
     .board-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 8px 0 12px;
-      font-size: 0.85rem;
-      color: #9ca3af;
+      margin: 8px 4px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0369a1;
     }
-    
+
+    /* 🏖️ 카드 디자인: 글래스모피즘 스타일 */
     .card {
-      background: rgba(17,24,39,0.95);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.35);
-      border: 1px solid rgba(148,163,184,0.25);
+      box-shadow: 0 8px 24px rgba(0, 119, 182, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      transition: transform 0.2s ease;
       cursor: pointer;
     }
+    .card:active { transform: scale(0.98); }
 
-    /* 💡 1, 2, 3위 외곽선 3px 강조 유지 */
-    .rank-1-card { border: 3px solid #fbbf24 !important; }
-    .rank-2-card { border: 3px solid #e5e7eb !important; }
-    .rank-3-card { border: 3px solid #f97316 !important; }
+    /* 🏆 상위권 강조 효과 (여름 보석 느낌) */
+    .rank-1-card { 
+      background: rgba(255, 250, 230, 0.85) !important;
+      border: 2px solid #fbbf24 !important; 
+    }
+    .rank-2-card { border: 2px solid #cbd5e1 !important; }
+    .rank-3-card { border: 2px solid #fdba74 !important; }
 
-    .card-left { display: flex; align-items: center; gap: 15px; min-width: 0; }
-    
-    /* 💡 순위 배지 디자인 */
+    .card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+
+    /* 🏅 순위 배지 */
     .rank-badge {
-      width: 46px;
-      height: 46px;
+      width: 48px;
+      height: 48px;
       text-align: center;
       font-weight: 800;
-      border-radius: 50%;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #1e293b;
-      color: #e5e7eb;
-      border: 1px solid rgba(75,85,99,0.9);
+      background: white;
+      color: #334155;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       flex-shrink: 0;
-      /* 💡 요청 반영: 4위 이하 순위 글씨 크기 축소 */
-      font-size: 0.85rem; 
+      font-size: 0.9rem;
     }
 
-    /* 💡 1, 2, 3위는 메달 이모지가 들어가므로 크기 유지 */
     .rank-1-badge, .rank-2-badge, .rank-3-badge {
-      font-size: 1.1rem;
+      font-size: 1.4rem;
+      background: #ffffff;
     }
 
-    .team-name { font-size: 1rem; font-weight: 600; color: #ffffff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 170px; }
+    .team-name { font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+    .team-sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+
+    .card-right { text-align: right; flex-shrink: 0; }
+    .score { font-weight: 800; font-size: 1.25rem; color: #0284c7; }
+    .score-label { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+    .total-score { font-size: 0.8rem; margin-top: 2px; color: #94a3b8; }
     
-    /* 💡 요청 반영: '팀 ID' -> '팀명' 문구 변경 */
-    .team-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
-    
-    .card-right { text-align: right; font-size: 0.85rem; flex-shrink: 0; }
-    .score { font-weight: 700; font-size: 1.1rem; color: #fbbf24; }
-    .score-label { font-size: 0.72rem; color: #9ca3af; }
-    .total-score { font-size: 0.78rem; margin-top: 2px; color: #9ca3af; }
-    .loading { text-align: center; font-size: 0.9rem; margin-top: 24px; color: #9ca3af; }
+    .loading { text-align: center; font-size: 1rem; margin-top: 40px; color: #0369a1; font-weight: 500; }
+
+    /* 푸터 장식 (파도 느낌) */
+    .ocean-floor {
+      position: fixed;
+      bottom: 0; left: 0; width: 100%;
+      height: 100px;
+      background: linear-gradient(to top, rgba(255,255,255,0.8), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>메리클라임 써머 준결승</h1>
-    <p>실시간 팀 순위 · 스프레드시트 기반 자동 업데이트</p>
+    <h1>☀️ MERRY CLIMB SUMMER</h1>
+    <p>한여름의 뜨거운 준결승 레이스</p>
   </header>
 
   <div class="container">
     <div class="board-header">
-      <span>실시간 순위</span>
-      <span style="font-size: 0.8rem; color: #6b7280;">※ 자동 동기화 중</span>
+      <span>실시간 순위 리더보드</span>
+      <span style="font-size: 0.8rem; color: #0ea5e9;">● LIVE UPDATING</span>
     </div>
-    <div id="status" class="loading">데이터 불러오는 중...</div>
+    <div id="status" class="loading">파도 타고 데이터 불러오는 중... 🌊</div>
     <div id="board"></div>
   </div>
 
+  <div class="ocean-floor"></div>
+
   <script>
+    // CSV URL 및 로직은 기존과 동일하게 유지
     const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
 
     async function loadScoreboard() {
@@ -172,8 +215,8 @@
             </div>
             <div class="card-right">
               <div class="score">${item.score}</div>
-              <div class="score-label">팀 점수</div>
-              <div class="total-score">총점: ${item.total}</div>
+              <div class="score-label">TEAM SCORE</div>
+              <div class="total-score">총합: ${item.total}</div>
             </div>
           `;
           boardEl.appendChild(card);
