@@ -129,12 +129,12 @@
   <div class="header-container">
     <h1 id="teamName">팀 상세 정보</h1>
     <div class="team-total-card">
-      <div class="team-total-label">FINAL TEAM T-TOTAL</div>
+      <div class="team-total-label">TEAM TOTAL SCORE</div>
       <div id="teamTotal" class="team-total-value">-</div>
     </div>
   </div>
 
-  <div id="status" class="loading">결승전 데이터를 전송받고 있습니다...</div>
+  <div id="status" class="loading">데이터를 전송받고 있습니다...</div>
   
   <div class="table-wrapper" id="tableContainer" style="display: none;">
     <div id="tableArea"></div>
@@ -146,7 +146,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const teamParam = urlParams.get("team") || "";
 
-    // ✅ 결승전 시트 정보 (T데이터 탭: gid=28014312)
+    // ✅ 결승전 시트 URL (gid=28014312)
     const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=28014312";
 
     document.getElementById("teamName").innerText = "🏆 " + teamParam + " 팀 상세 정보";
@@ -163,48 +163,38 @@
         let currentTeam = "";
         let teamTotalScore = "0";
 
-        // ✅ 결승전 인덱스 설정
-        const TEAM_COL = 1;      // B열: 팀명
-        const NUM_COL = 2;       // C열: 번호
-        const NAME_COL = 3;      // D열: 참가자 이름
-        const SECTOR_START = 4;  // E열: 1섹터 시작
-        const PERSONAL_TOTAL_COL = 28; // AC열: 개인 총합
-        const TEAM_TOTAL_COL = 29;     // AD열: 팀 T-합계
-
         for (let i = 3; i < rows.length; i++) {
           const row = rows[i];
           if (!row || row.length < 5) continue;
 
-          const sheetTeam = row[TEAM_COL];
-          if (sheetTeam) currentTeam = sheetTeam;
+          const teamNameInSheet = row[1];
+          if (teamNameInSheet) currentTeam = teamNameInSheet;
 
           if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
-            if (row[NAME_COL]) { 
+            if (row[3]) { 
               teamRows.push(row);
-              // 팀 총점 (AD열) - 첫 번째 데이터에서 가져옴
-              if (row[TEAM_TOTAL_COL] && row[TEAM_TOTAL_COL] !== "0" && teamTotalScore === "0") {
-                teamTotalScore = row[TEAM_TOTAL_COL];
+              // ✅ 팀 총점 위치: X열 (인덱스 23)
+              if (row[23] && row[23] !== "0" && teamTotalScore === "0") {
+                teamTotalScore = row[23];
               }
             }
           }
         }
 
         if (teamRows.length === 0) {
-          document.getElementById("status").innerText = "❌ 결승 팀 데이터를 불러올 수 없습니다.";
+          document.getElementById("status").innerText = "❌ 팀 데이터를 불러올 수 없습니다.";
           return;
         }
 
-        document.getElementById("teamTotal").innerText = teamTotalScore + " T";
+        document.getElementById("teamTotal").innerText = teamTotalScore;
 
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
 
-        // 헤더 생성 (섹터 수 자동 계산: E열부터 AC열 전까지)
         const headers = ["참가자", "번호"];
-        const sectorCount = PERSONAL_TOTAL_COL - SECTOR_START;
-        for (let i = 1; i <= sectorCount; i++) {
-          headers.push(i + " S");
+        for (let i = 1; i <= 18; i++) {
+          headers.push(i + " 섹터");
         }
         headers.push("개인 총합");
 
@@ -220,10 +210,10 @@
         teamRows.forEach(row => {
           const tr = document.createElement("tr");
           
-          const name = row[NAME_COL];
-          const number = row[NUM_COL];
-          const sectors = row.slice(SECTOR_START, PERSONAL_TOTAL_COL);
-          const personalTotal = row[PERSONAL_TOTAL_COL];
+          const name = row[3];
+          const number = row[2];
+          const sectors = row.slice(4, 22); // ✅ 1~18 섹터 (인덱스 4~22)
+          const personalTotal = row[22];    // ✅ 개인 총합 (인덱스 22)
 
           const cells = [name, number, ...sectors, personalTotal];
 
