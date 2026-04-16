@@ -5,43 +5,42 @@
   <title>메리클라임 써머 준결승</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* 🌊 배경 포스터 이미지 설정 */
+    /* 🌊 사용자 이미지를 fixed 배경으로 설정 */
     body {
       font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
       margin: 0;
-      background-image: url('image_0.png'); /* 배경으로 사용할 포스터 이미지 파일명 */
+      background-image: url('image_0.png');
       background-size: cover;
-      background-attachment: fixed; /* 스크롤 시 배경 고정 */
+      background-attachment: fixed;
       background-position: center top;
-      min-height: 100vh;
-      color: #f5f5f5; /* 기본 텍스트 색상 (원본 유지) */
+      color: #334155; /* 데이터 텍스트 색상을 어두운 색으로 */
     }
 
-    /* 🏖️ 헤더 조정: 포스터 상단 제목 영역 확보 */
+    /* 🏖️ 헤더 스타일: 사용자 이미지 제목 스타일 재현 */
     header {
-      padding: 0;
-      height: 180px; /* 포스터 상단 제목 영역 높이 */
-      background: transparent; /* 배경 투명 */
+      padding: 40px 20px 10px;
       text-align: center;
-      display: flex;
-      align-items: flex-end; /* 아래에 붙여서 제목 아래 여백 확보 */
-      justify-content: center;
-      position: relative;
-      z-index: 10;
     }
-
-    /* 포스터의 제목을 사용하므로, 기존 헤더 텍스트는 숨김 처리 */
-    header h1, header p {
-      display: none;
+    header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      color: #fbbf24; /* 노란색 */
+      text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      -webkit-text-stroke: 1.5px #111827; /* 어두운 테두리 */
+    }
+    header p {
+      margin: 4px 0 0;
+      font-size: 1rem;
+      color: #ffffff; /* 흰색 */
+      text-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
     
-    /* 🧗 리더보드 컨테이너: 포스터 제목 아래에 배치 */
+    /* 🧗 리더보드 컨테이너: 암벽 오른쪽에 배치 */
     .container {
-      max-width: 600px;
-      margin: 200px auto 32px; /* 상단 여백을 주어 포스터 제목 아래에 위치 */
+      width: 300px; /* 너비 제한 */
+      margin-left: calc(100% - 300px); /* 오른쪽에 배치 */
       padding: 12px 12px 32px;
       position: relative;
-      z-index: 1;
     }
     .board-header {
       display: flex;
@@ -49,38 +48,35 @@
       align-items: center;
       margin: 8px 0 12px;
       font-size: 0.95rem;
-      color: #ffffff; /* 흰색으로 가독성 확보 */
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      color: #ffffff; /* 흰색 */
+      text-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
     
-    /* 🏖️ 카드 디자인: 글래스모피즘 효과 강화 (원본 스타일 유지 + 배경 투명도 조절) */
+    /* 🏖️ 카드 스타일: 투명 오버레이로 일러스트 배경이 보이도록 */
     .card {
-      background: rgba(17, 24, 39, 0.85); /* 투명도를 조절한 어두운 배경 */
-      backdrop-filter: blur(8px); /* 글래스모피즘 효과 추가 */
-      -webkit-backdrop-filter: blur(8px);
-      border-radius: 16px; /* 원본 10px -> 16px로 좀 더 둥글게 (옵션) */
-      padding: 16px; /* 원본 12px -> 16px로 여백 확보 */
+      background: rgba(255, 255, 255, 0.8); /* 흰색 투명 배경 */
+      backdrop-filter: blur(10px); /* 블러 효과 */
+      border-radius: 16px;
+      padding: 16px;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* 그림자 강화 */
-      border: 1.5px solid rgba(148, 163, 184, 0.2); /* 테두리 원본 유지 */
+      box-shadow: 0 8px 20px rgba(0, 119, 182, 0.1);
+      border: 1.5px solid rgba(0, 119, 182, 0.2);
       cursor: pointer;
-      transition: transform 0.2s ease;
     }
-    .card:active { transform: scale(0.98); }
 
-    /* 🏆 상위권 카드 테두리 강조 (원본 유지) */
-    .rank-1-card { border: 3px solid #fbbf24 !important; }
-    .rank-2-card { border: 3px solid #e5e7eb !important; }
-    .rank-3-card { border: 3px solid #f97316 !important; }
+    /* 🏆 상위권 카드 테두리 더 진하게 강조 (이미지 색상 사용) */
+    .rank-1-card { border: 3px solid #f59e0b !important; } /* 골드 */
+    .rank-2-card { border: 3px solid #94a3b8 !important; } /* 다크실버 */
+    .rank-3-card { border: 3px solid #0369a1 !important; } /* 청록색 */
 
     .card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     
-    /* 🏅 순위 배지 디자인 (원본 유지) */
+    /* 🏅 순위 배지 디자인: 이미지 이모지 유지 */
     .rank-badge {
-      width: 48px; /* 원본 46px -> 48px로 살짝 확대 */
+      width: 48px;
       height: 48px;
       text-align: center;
       font-weight: 800;
@@ -88,30 +84,29 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #ffffff; /* 흰색 배경으로 가독성 확보 */
-      color: #1e293b; /* 어두운 텍스트 */
+      background: #ffffff;
+      color: #1e293b;
       border: 1.5px solid rgba(0, 119, 182, 0.2);
       flex-shrink: 0;
     }
 
     .rank-1-badge, .rank-2-badge, .rank-3-badge {
-      font-size: 1.5rem; /* 원본 1.1rem -> 1.5rem로 이모지 확대 */
+      font-size: 1.5rem;
     }
 
-    .team-name { font-size: 1.1rem; font-weight: 700; color: #ffffff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 170px; }
-    .team-sub { font-size: 0.8rem; color: #9ca3af; margin-top: 1px; }
+0   .team-name { font-size: 1.1rem; font-weight: 700; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 150px; }
+    .team-sub { font-size: 0.8rem; color: #64748b; margin-top: 1px; }
     
     .card-right { text-align: right; font-size: 0.9rem; flex-shrink: 0; }
-    .score { font-weight: 900; font-size: 1.3rem; color: #fbbf24; } /* 골드색 유지 */
-    .score-label { font-size: 0.72rem; color: #9ca3af; }
-    .total-score { font-size: 0.85rem; margin-top: 2px; color: #ffffff; font-weight: 600; }
+    .score { font-weight: 900; font-size: 1.3rem; color: #0284c7; } /* 청록색 */
+    .total-score { font-size: 0.85rem; margin-top: 2px; color: #111827; font-weight: 600; }
     .loading { text-align: center; font-size: 1rem; margin-top: 50px; color: #ffffff; font-weight: 600; }
   </style>
 </head>
 <body>
   <header>
-        <h1>MERRY CLIMB SUMMER SEMI FINAL</h1>
-    <p>실시간 팀 순위 · 스프레드시트 기반 자동 업데이트</p>
+    <h1>MERRY CLIMB SUMMER</h1>
+    <p>실시간 팀 순위 레이스</p>
   </header>
 
   <div class="container">
@@ -124,7 +119,7 @@
   </div>
 
   <script>
-    // 스크립트 로직은 원본 그대로 유지
+    // 스크립트 로직은 그대로 유지
     const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
 
     async function loadScoreboard() {
@@ -166,7 +161,7 @@
             card.classList.add("rank-1-card");
             rankBadgeClass += " rank-1-badge";
           } else if (item.rank === 2) {
-  0           card.classList.add("rank-2-card");
+            card.classList.add("rank-2-card");
             rankBadgeClass += " rank-2-badge";
           } else if (item.rank === 3) {
             card.classList.add("rank-3-card");
