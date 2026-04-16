@@ -169,25 +169,32 @@
         const res = await fetch(CSV_URL);
         const text = await res.text();
 
-        // 줄바꿈 처리 및 빈 줄 제거
         const rows = text.replace(/\r/g, "").split("\n")
-          .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()))
-          .filter(row => row.length > 1);
+          .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
         let teamRows = [];
         let currentTeam = "";
+        let extractedTeamTotal = "0";
 
-        // 데이터 시작점 찾기 및 팀 필터링
-        for (let i = 0; i < rows.length; i++) {
+        // CSV는 4번째 줄(인덱스 3)부터 데이터 시작
+        for (let i = 3; i < rows.length; i++) {
           const row = rows[i];
-          const teamCol = row[1]; // 보통 B열(인덱스 1)이 팀명
-          
-          if (teamCol) currentTeam = teamCol;
+          if (!row || row.length < 5) continue;
 
+          const teamNameFromSheet = row[1] ? row[1].trim() : "";
+          if (teamNameFromSheet) currentTeam = teamNameFromSheet;
+
+          // 팀명 비교 (공백 제거 후 비교)
           if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
-            // 빈 행이 아니며 이름(인덱스 3)이 있는 경우만 추가
-            if (row[3] && row[3] !== "이름") {
+            // 이름(D열, 인덱스 3)이 있는 경우만 팀원 행으로 간주
+            if (row[3]) {
               teamRows.push(row);
+              
+              // ⭐ X열(24번째 열 = 인덱스 23)에서 팀 총점 추출
+              // 4칸 중 한 곳에만 있거나 모두 있을 경우를 대비해 값이 있을 때 업데이트
+              if (row[23] && row[23] !== "0" && extractedTeamTotal === "0") {
+                extractedTeamTotal = row[23];
+              }
             }
           }
         }
@@ -197,18 +204,14 @@
           return;
         }
 
-        // ⭐ 정확한 인덱스 계산 (데이터 구조에 따라 조정)
-        // ii 팀의 사례를 볼 때, '개인 총점'은 마지막에서 2번째, '팀 총합'은 마지막 열에 있을 가능성이 높습니다.
-        const totalIndex = teamRows[0].length - 2; // 개인 총점 위치
-        const sectorStart = 4; // 섹터 시작 위치 (E열)
-        const sectorCount = totalIndex - sectorStart;
-        
-        // 팀 총합은 필터링된 행들 중 가장 마지막 열(index: length-1)에 반복적으로 적혀있을 것입니다.
-        const teamTotalValue = teamRows[0][teamRows[0].length - 1];
-        
-        document.getElementById("teamTotal").innerText = teamTotalValue || "0";
+        // 화면에 팀 총점 표시
+        document.getElementById("teamTotal").innerText = extractedTeamTotal;
 
-        // 테이블 생성
+        // 개인별 섹터 점수 및 개인 총점 계산 (기존 로직 유지)
+        const totalIndex = 22; // W열(23번째 열)이 개인 총점일 경우 22
+        const sectorStart = 4; // E열부터 시작
+        const sectorCount = totalIndex - sectorStart;
+
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
@@ -217,7 +220,7 @@
         for (let i = 1; i <= sectorCount; i++) {
           headers.push(i + "섹터");
         }
-        headers.push("총합");
+        headers.push("개인총점");
 
         headers.forEach(h => {
           const th = document.createElement("th");
@@ -231,19 +234,15 @@
         const tbody = document.createElement("tbody");
         teamRows.forEach(row => {
           const tr = document.createElement("tr");
-          
-          const name = row[3] || "-";
-          const number = row[2] || "-";
-          const personalTotal = row[totalIndex] || "0";
+          const name = row[3];
+          const number = row[2];
+          const personalTotal = row[totalIndex];
           const sectors = row.slice(sectorStart, totalIndex);
-          
-          // 데이터가 비어있으면 0으로 표시
-          const cleanSectors = sectors.map(s => s === "" ? "0" : s);
-          const cells = [name, number, ...cleanSectors, personalTotal];
+          const cells = [name, number, ...sectors, personalTotal];
 
           cells.forEach(c => {
             const td = document.createElement("td");
-            td.innerText = c;
+            td.innerText = c || "0";
             tr.appendChild(td);
           });
           tbody.appendChild(tr);
@@ -256,7 +255,7 @@
 
       } catch (e) {
         document.getElementById("status").innerText = "⚠️ 데이터 로딩 실패";
-        console.error("Error Detail:", e);
+        console.error(e);
       }
     }
 
