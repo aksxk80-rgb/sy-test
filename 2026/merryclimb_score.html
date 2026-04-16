@@ -43,40 +43,25 @@
     
     .live-indicator {
       display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #ff4d4d;
-      font-weight: 800;
-      font-size: 0.85rem;
-      letter-spacing: 0.5px;
+      align-items: center; gap: 6px;
+      color: #ff4d4d; font-weight: 800; font-size: 0.85rem;
     }
 
     .live-dot {
-      width: 10px;
-      height: 10px;
-      background-color: #ff4d4d;
-      border-radius: 50%;
-      animation: blink 1.2s infinite;
+      width: 10px; height: 10px; background-color: #ff4d4d;
+      border-radius: 50%; animation: blink 1.2s infinite;
     }
 
-    @keyframes blink {
-      0% { opacity: 1; }
-      50% { opacity: 0.3; }
-      100% { opacity: 1; }
-    }
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-    .main-label {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: #075985;
-    }
+    .main-label { font-size: 1.1rem; font-weight: 800; color: #075985; }
 
     .card {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border-radius: 16px;
-      padding: 20px;
+      padding: 16px 20px;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -84,55 +69,41 @@
       box-shadow: 0 4px 15px rgba(0, 119, 182, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.5);
       cursor: pointer;
-      transition: transform 0.1s ease;
     }
-    .card:active { transform: scale(0.98); }
 
-    .rank-1-card { 
-      background: #fffbeb !important; 
-      border: 3px solid #f59e0b !important; 
-      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.2);
-    }
-    .rank-2-card { 
-      background: #f8fafc !important; 
-      border: 3px solid #94a3b8 !important; 
-    }
-    .rank-3-card { 
-      background: #fff7ed !important; 
-      border: 3px solid #ea580c !important; 
-    }
+    .rank-1-card { background: #fffbeb !important; border: 3px solid #f59e0b !important; }
+    .rank-2-card { background: #f8fafc !important; border: 3px solid #94a3b8 !important; }
+    .rank-3-card { background: #fff7ed !important; border: 3px solid #ea580c !important; }
 
     .card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
 
     .rank-badge {
-      width: 48px;
-      height: 48px;
-      text-align: center;
-      font-weight: 900;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: white;
-      color: #1e293b;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
-      flex-shrink: 0;
+      width: 48px; height: 48px; text-align: center; font-weight: 900;
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      background: white; color: #1e293b; flex-shrink: 0;
     }
-
-    .rank-1-badge, .rank-2-badge, .rank-3-badge { font-size: 1.5rem; }
 
     .team-info { display: flex; flex-direction: column; }
     .team-name { font-size: 1.1rem; font-weight: 800; color: #0f172a; }
     .team-sub { font-size: 0.8rem; color: #64748b; margin-top: 1px; }
 
-    .card-right { text-align: right; }
-    /* ⭐ 점수만 남기고 검은색으로 변경 */
-    .total-score { 
+    /* ⭐ 카드 오른쪽 점수 영역 */
+    .card-right { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+    
+    /* 메인 T 합계 (Y열) */
+    .t-score { 
       font-size: 1.4rem; 
-      color: #0f172a; /* 진한 검은색 */
+      color: #0f172a; 
       font-weight: 900; 
     }
     
+    /* 서브 총합 (기존 점수) */
+    .total-score-label { 
+      font-size: 0.85rem; 
+      color: #64748b; 
+      font-weight: 700; 
+    }
+
     .loading { text-align: center; font-size: 1rem; margin-top: 50px; color: #ffffff; font-weight: 600; }
   </style>
 </head>
@@ -149,7 +120,6 @@
         LIVE UPDATING
       </div>
     </div>
-
     <div id="status" class="loading">데이터를 불러오고 있습니다...</div>
     <div id="board"></div>
   </div>
@@ -164,24 +134,26 @@
       try {
         const res = await fetch(CSV_URL);
         const text = await res.text();
-
-        let rows = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
+        let rows = text.replace(/\r/g, "").split("\n")
           .map(r => r.replace(/^\uFEFF/, "").trim())
           .filter(r => r.replace(/,/g, "").trim() !== "");
 
         const header = rows[0].split(",");
         const dataRows = rows.slice(1).map(r => r.split(","));
 
-        const rankIdx = header.findIndex(h => h.trim() === "팀 순위");
-        const nameIdx = header.findIndex(h => h.trim() === "팀명");
-        const totalIdx = header.findIndex(h => h.trim() === "총점");
+        const rankIdx = header.findIndex(h => h.includes("순위"));
+        const nameIdx = header.findIndex(h => h.includes("팀명"));
+        const totalIdx = header.findIndex(h => h.includes("총점"));
+        // ⭐ Y열(T 합계) 인덱스 찾기 (보통 24번 인덱스)
+        const tIdx = 24; 
 
         let items = dataRows.map(cols => {
           const rank = cols[rankIdx]?.trim();
           const name = cols[nameIdx]?.trim();
           const total = cols[totalIdx]?.trim();
+          const tValue = cols[tIdx]?.trim() || "0"; 
           if (!rank || !name) return null;
-          return { rank: Number(rank), displayName: name, teamKeyName: name, total: total || "0" };
+          return { rank: Number(rank), displayName: name, teamKeyName: name, total: total || "0", tValue: tValue };
         }).filter(Boolean).sort((a, b) => a.rank - b.rank);
 
         boardEl.innerHTML = "";
@@ -192,25 +164,14 @@
           card.className = "card";
           
           let rankBadgeClass = "rank-badge";
-          if (item.rank === 1) {
-            card.classList.add("rank-1-card");
-            rankBadgeClass += " rank-1-badge";
-          } else if (item.rank === 2) {
-            card.classList.add("rank-2-card");
-            rankBadgeClass += " rank-2-badge";
-          } else if (item.rank === 3) {
-            card.classList.add("rank-3-card");
-            rankBadgeClass += " rank-3-badge";
-          }
+          let rankBadgeText = item.rank + "위";
+          if (item.rank === 1) { card.classList.add("rank-1-card"); rankBadgeText = "🥇"; }
+          else if (item.rank === 2) { card.classList.add("rank-2-card"); rankBadgeText = "🥈"; }
+          else if (item.rank === 3) { card.classList.add("rank-3-card"); rankBadgeText = "🥉"; }
 
           card.onclick = () => {
             window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
           };
-
-          let rankBadgeText = item.rank + "위";
-          if (item.rank === 1) rankBadgeText = "🥇";
-          else if (item.rank === 2) rankBadgeText = "🥈";
-          else if (item.rank === 3) rankBadgeText = "🥉";
 
           card.innerHTML = `
             <div class="card-left">
@@ -221,7 +182,8 @@
               </div>
             </div>
             <div class="card-right">
-              <div class="total-score">${item.total}</div>
+              <div class="t-score">${item.tValue} T</div>
+              <div class="total-score-label">총합: ${item.total}</div>
             </div>
           `;
           boardEl.appendChild(card);
