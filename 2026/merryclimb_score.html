@@ -1,202 +1,237 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>메리클라임 써머 준결승</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    /* 🌊 사용자 이미지를 fixed 배경으로 설정 */
-    body {
-      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
-      margin: 0;
-      background-image: url('image_0.png');
-      background-size: cover;
-      background-attachment: fixed;
-      background-position: center top;
-      color: #334155; /* 데이터 텍스트 색상을 어두운 색으로 */
-    }
+  <meta charset="UTF-8" />
+  <title>메리클라임 써머 준결승</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      background: linear-gradient(180deg, #4facfe 0%, #00f2fe 40%, #fdfbfb 100%);
+      background-attachment: fixed;
+      color: #1e293b;
+      min-height: 100vh;
+    }
 
-    /* 🏖️ 헤더 스타일: 사용자 이미지 제목 스타일 재현 */
-    header {
-      padding: 40px 20px 10px;
-      text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2.2rem;
-      color: #fbbf24; /* 노란색 */
-      text-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      -webkit-text-stroke: 1.5px #111827; /* 어두운 테두리 */
-    }
-    header p {
-      margin: 4px 0 0;
-      font-size: 1rem;
-      color: #ffffff; /* 흰색 */
-      text-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    }
-    
-    /* 🧗 리더보드 컨테이너: 암벽 오른쪽에 배치 */
-    .container {
-      width: 300px; /* 너비 제한 */
-      margin-left: calc(100% - 300px); /* 오른쪽에 배치 */
-      padding: 12px 12px 32px;
-      position: relative;
-    }
-    .board-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 8px 0 12px;
-      font-size: 0.95rem;
-      color: #ffffff; /* 흰색 */
-      text-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    }
-    
-    /* 🏖️ 카드 스타일: 투명 오버레이로 일러스트 배경이 보이도록 */
-    .card {
-      background: rgba(255, 255, 255, 0.8); /* 흰색 투명 배경 */
-      backdrop-filter: blur(10px); /* 블러 효과 */
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 8px 20px rgba(0, 119, 182, 0.1);
-      border: 1.5px solid rgba(0, 119, 182, 0.2);
-      cursor: pointer;
-    }
+    header {
+      padding: 40px 20px 20px;
+      text-align: center;
+    }
+    header h1 { 
+      margin: 0; 
+      font-size: 2rem; 
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      letter-spacing: -1px;
+    }
 
-    /* 🏆 상위권 카드 테두리 더 진하게 강조 (이미지 색상 사용) */
-    .rank-1-card { border: 3px solid #f59e0b !important; } /* 골드 */
-    .rank-2-card { border: 3px solid #94a3b8 !important; } /* 다크실버 */
-    .rank-3-card { border: 3px solid #0369a1 !important; } /* 청록색 */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 16px 60px;
+    }
 
-    .card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
-    
-    /* 🏅 순위 배지 디자인: 이미지 이모지 유지 */
-    .rank-badge {
-      width: 48px;
-      height: 48px;
-      text-align: center;
-      font-weight: 800;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #ffffff;
-      color: #1e293b;
-      border: 1.5px solid rgba(0, 119, 182, 0.2);
-      flex-shrink: 0;
-    }
+    /* 🔴 LIVE UPDATING & 실시간 순위 강조 */
+    .board-status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 0 4px;
+    }
+    
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #ff4d4d; /* 선명한 레드 */
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
 
-    .rank-1-badge, .rank-2-badge, .rank-3-badge {
-      font-size: 1.5rem;
-    }
+    /* 녹화 버튼 깜빡임 효과 */
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #ff4d4d;
+      border-radius: 50%;
+      animation: blink 1.2s infinite;
+    }
 
-0   .team-name { font-size: 1.1rem; font-weight: 700; color: #0f172a; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 150px; }
-    .team-sub { font-size: 0.8rem; color: #64748b; margin-top: 1px; }
-    
-    .card-right { text-align: right; font-size: 0.9rem; flex-shrink: 0; }
-    .score { font-weight: 900; font-size: 1.3rem; color: #0284c7; } /* 청록색 */
-    .total-score { font-size: 0.85rem; margin-top: 2px; color: #111827; font-weight: 600; }
-    .loading { text-align: center; font-size: 1rem; margin-top: 50px; color: #ffffff; font-weight: 600; }
-  </style>
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .main-label {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #075985; /* 진한 블루로 가독성 확보 */
+    }
+
+    /* 🏖️ 카드 기본 디자인 */
+    .card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(0, 119, 182, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+    }
+
+    /* 🏆 금, 은, 동 박스 강조 (색상 진하게 업데이트) */
+    .rank-1-card { 
+      background: #fffbeb !important; /* 더 진한 미색 */
+      border: 3px solid #f59e0b !important; /* 진한 골드 */
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.2);
+    }
+    .rank-2-card { 
+      background: #f8fafc !important;
+      border: 3px solid #94a3b8 !important; /* 진한 실버/그레이 */
+    }
+    .rank-3-card { 
+      background: #fff7ed !important;
+      border: 3px solid #ea580c !important; /* 진한 동색/오렌지 */
+    }
+
+    .card-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+
+    .rank-badge {
+      width: 48px;
+      height: 48px;
+      text-align: center;
+      font-weight: 900;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      color: #1e293b;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+      flex-shrink: 0;
+    }
+
+    .rank-1-badge, .rank-2-badge, .rank-3-badge { font-size: 1.5rem; }
+
+    .team-info { display: flex; flex-direction: column; }
+    .team-name { font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+    .team-sub { font-size: 0.8rem; color: #64748b; margin-top: 1px; }
+
+    .card-right { text-align: right; }
+    .score { font-weight: 900; font-size: 1.3rem; color: #0284c7; }
+    .score-label { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; }
+    .total-score { font-size: 0.85rem; margin-top: 2px; color: #0f172a; font-weight: 600; }
+    
+    .loading { text-align: center; font-size: 1rem; margin-top: 50px; color: #ffffff; font-weight: 600; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>MERRY CLIMB SUMMER</h1>
-    <p>실시간 팀 순위 레이스</p>
-  </header>
+  <header>
+    <h1>☀️ MERRY CLIMB SUMMER SEMI FINAL</h1>
+  </header>
 
-  <div class="container">
-    <div class="board-header">
-      <span>실시간 순위 리더보드</span>
-      <span style="font-size: 0.85rem; color: #fbbf24; font-weight: 700;">● LIVE UPDATING</span>
-    </div>
-    <div id="status" class="loading">데이터 불러오는 중...</div>
-    <div id="board"></div>
-  </div>
+  <div class="container">
+    <div class="board-status-bar">
+      <div class="main-label">실시간 순위 리더보드</div>
+      <div class="live-indicator">
+        <div class="live-dot"></div>
+        LIVE UPDATING
+      </div>
+    </div>
 
-  <script>
-    // 스크립트 로직은 그대로 유지
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
+    <div id="status" class="loading">데이터를 불러오고 있습니다...</div>
+    <div id="board"></div>
+  </div>
 
-    async function loadScoreboard() {
-      const statusEl = document.getElementById("status");
-      const boardEl = document.getElementById("board");
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=914454642";
 
-      try {
-        const res = await fetch(CSV_URL);
-        const text = await res.text();
+    async function loadScoreboard() {
+      const statusEl = document.getElementById("status");
+      const boardEl = document.getElementById("board");
 
-        let rows = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
-          .map(r => r.replace(/^\uFEFF/, "").trim())
-          .filter(r => r.replace(/,/g, "").trim() !== "");
+      try {
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
 
-        const header = rows[0].split(",");
-        const dataRows = rows.slice(1).map(r => r.split(","));
+        let rows = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
+          .map(r => r.replace(/^\uFEFF/, "").trim())
+          .filter(r => r.replace(/,/g, "").trim() !== "");
 
-        const rankIdx = header.findIndex(h => h.trim() === "팀 순위");
-        const nameIdx = header.findIndex(h => h.trim() === "팀명");
-        const totalIdx = header.findIndex(h => h.trim() === "총점");
+        const header = rows[0].split(",");
+        const dataRows = rows.slice(1).map(r => r.split(","));
 
-        let items = dataRows.map(cols => {
-          const rank = cols[rankIdx]?.trim();
-          const name = cols[nameIdx]?.trim();
-          const total = cols[totalIdx]?.trim();
-          if (!rank || !name) return null;
-          return { rank: Number(rank), displayName: name, teamKeyName: name, score: total, total };
-        }).filter(Boolean).sort((a, b) => a.rank - b.rank);
+        const rankIdx = header.findIndex(h => h.trim() === "팀 순위");
+        const nameIdx = header.findIndex(h => h.trim() === "팀명");
+        const totalIdx = header.findIndex(h => h.trim() === "총점");
 
-        boardEl.innerHTML = "";
-        statusEl.style.display = "none";
+        let items = dataRows.map(cols => {
+          const rank = cols[rankIdx]?.trim();
+          const name = cols[nameIdx]?.trim();
+          const total = cols[totalIdx]?.trim();
+          if (!rank || !name) return null;
+          return { rank: Number(rank), displayName: name, teamKeyName: name, score: total, total };
+        }).filter(Boolean).sort((a, b) => a.rank - b.rank);
 
-        items.forEach(item => {
-          const card = document.createElement("div");
-          card.className = "card";
-          
-          let rankBadgeClass = "rank-badge";
-          if (item.rank === 1) {
-            card.classList.add("rank-1-card");
-            rankBadgeClass += " rank-1-badge";
-          } else if (item.rank === 2) {
-            card.classList.add("rank-2-card");
-            rankBadgeClass += " rank-2-badge";
-          } else if (item.rank === 3) {
-            card.classList.add("rank-3-card");
-            rankBadgeClass += " rank-3-badge";
-          }
+        boardEl.innerHTML = "";
+        statusEl.style.display = "none";
 
-          card.onclick = () => {
-            window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
-          };
+        items.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+          
+          let rankBadgeClass = "rank-badge";
+          if (item.rank === 1) {
+            card.classList.add("rank-1-card");
+            rankBadgeClass += " rank-1-badge";
+          } else if (item.rank === 2) {
+            card.classList.add("rank-2-card");
+            rankBadgeClass += " rank-2-badge";
+          } else if (item.rank === 3) {
+            card.classList.add("rank-3-card");
+            rankBadgeClass += " rank-3-badge";
+          }
 
-          let rankBadgeText = item.rank + "위";
-          if (item.rank === 1) rankBadgeText = "🥇";
-          else if (item.rank === 2) rankBadgeText = "🥈";
-          else if (item.rank === 3) rankBadgeText = "🥉";
+          card.onclick = () => {
+            window.location.href = `/sy-test/2026/merryclimb_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+          };
 
-          card.innerHTML = `
-            <div class="card-left">
-              <div class="${rankBadgeClass}">${rankBadgeText}</div>
-              <div>
-                <div class="team-name">${item.displayName}</div>
-                <div class="team-sub">팀명: ${item.teamKeyName}</div>
-              </div>
-            </div>
-            <div class="card-right">
-              <div class="score">${item.score}</div>
-              <div class="total-score">총점 ${item.total}</div>
-            </div>
-          `;
-          boardEl.appendChild(card);
-        });
-      } catch (err) {
-        statusEl.textContent = "오류 발생: " + err.message;
-      }
-    }
-    loadScoreboard();
-  </script>
+          let rankBadgeText = item.rank + "위";
+          if (item.rank === 1) rankBadgeText = "🥇";
+          else if (item.rank === 2) rankBadgeText = "🥈";
+          else if (item.rank === 3) rankBadgeText = "🥉";
+
+          card.innerHTML = `
+            <div class="card-left">
+              <div class="${rankBadgeClass}">${rankBadgeText}</div>
+              <div class="team-info">
+                <div class="team-name">${item.displayName}</div>
+                <div class="team-sub">팀명: ${item.teamKeyName}</div>
+              </div>
+            </div>
+            <div class="card-right">
+              <div class="score">${item.score}</div>
+              <div class="score-label">TEAM SCORE</div>
+              <div class="total-score">총합 ${item.total}</div>
+            </div>
+          `;
+          boardEl.appendChild(card);
+        });
+      } catch (err) {
+        statusEl.textContent = "오류 발생: " + err.message;
+      }
+    }
+    loadScoreboard();
+  </script>
 </body>
 </html>
