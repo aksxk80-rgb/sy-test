@@ -7,7 +7,6 @@
   <style>
     body {
       font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
-      /* 메인 페이지와 동일한 시원한 여름 그라데이션 */
       background: linear-gradient(180deg, #4facfe 0%, #00f2fe 40%, #fdfbfb 100%);
       background-attachment: fixed;
       color: #1e293b;
@@ -17,7 +16,7 @@
     }
 
     .header-container {
-      max-width: 800px;
+      max-width: 1000px;
       margin: 20px auto 10px;
       text-align: center;
     }
@@ -30,7 +29,6 @@
       margin-bottom: 8px;
     }
 
-    /* 🏆 팀 총점 카드 스타일 */
     .team-total-card {
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(8px);
@@ -56,86 +54,76 @@
       color: #0284c7;
     }
 
-    /* 📊 데이터 테이블 컨테이너 */
+    /* 📊 테이블 스타일 강화 */
     .table-wrapper {
-      max-width: 800px;
+      max-width: 1100px; /* 전체 너비 확장 */
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border-radius: 20px;
-      padding: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      overflow-x: auto; /* 모바일 대응 가로 스크롤 */
+      padding: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      overflow-x: auto; /* 가로 스크롤 허용 */
     }
 
     table {
       width: 100%;
-      border-collapse: collapse;
-      min-width: 500px; /* 너무 좁아지지 않게 설정 */
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: auto; /* 열 너비 자동 조절 */
+    }
+
+    th, td {
+      padding: 12px 6px;
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+      border-right: 1px solid rgba(0, 0, 0, 0.02);
+      white-space: nowrap; /* 텍스트 줄바꿈 방지 */
     }
 
     th {
-      background: rgba(7, 89, 133, 0.05);
+      background: rgba(7, 89, 133, 0.03);
       color: #075985;
       font-weight: 800;
-      font-size: 0.85rem;
-      padding: 14px 10px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
       border-bottom: 2px solid rgba(7, 89, 133, 0.1);
     }
 
-    td {
-      padding: 12px 10px;
-      text-align: center;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #334155;
+    /* 📏 구체적인 열 크기 조절 */
+    th:nth-child(1), td:nth-child(1) { min-width: 85px; font-weight: 800; color: #0f172a; } /* 이름 */
+    th:nth-child(2), td:nth-child(2) { min-width: 45px; color: #64748b; } /* 번호 */
+    
+    /* 섹터 점수 열들 */
+    th:not(:first-child):not(:last-child), 
+    td:not(:first-child):not(:last-child) {
+      min-width: 42px;
     }
 
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    /* 참가자 강조 */
-    td:first-child {
-      font-weight: 800;
-      color: #0f172a;
-    }
-
-    /* 총점 열 강조 */
-    td:last-child {
+    /* 마지막 총점 열 강조 */
+    th:last-child, td:last-child {
+      min-width: 80px;
+      background: rgba(2, 132, 199, 0.06);
       color: #0284c7;
       font-weight: 800;
+      border-right: none;
     }
 
-    .loading {
-      text-align: center;
-      margin-top: 60px;
-      font-weight: 700;
-      color: #ffffff;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    tr:hover td {
+      background: rgba(7, 89, 133, 0.02);
     }
 
+    .loading { text-align: center; margin-top: 60px; font-weight: 700; color: #ffffff; }
+    
     .back-btn {
-      display: block;
-      width: fit-content;
-      margin: 30px auto;
-      padding: 10px 20px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 30px;
-      color: #ffffff;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.9rem;
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      display: block; width: fit-content; margin: 30px auto; padding: 10px 24px;
+      background: rgba(255, 255, 255, 0.3); border-radius: 30px; color: #ffffff;
+      text-decoration: none; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.4);
       transition: all 0.2s;
     }
-
-    .back-btn:hover {
-      background: rgba(255, 255, 255, 0.5);
-    }
+    .back-btn:hover { background: rgba(255, 255, 255, 0.5); transform: translateY(-2px); }
   </style>
 </head>
 <body>
@@ -148,7 +136,7 @@
     </div>
   </div>
 
-  <div id="status" class="loading">파도를 타고 데이터를 불러오는 중...</div>
+  <div id="status" class="loading">데이터를 불러오는 중...</div>
   
   <div class="table-wrapper" id="tableContainer" style="display: none;">
     <div id="tableArea"></div>
@@ -174,70 +162,59 @@
 
         let teamRows = [];
         let currentTeam = "";
-        let extractedTeamTotal = "0";
+        let teamTotalScore = "0";
 
-        // CSV는 4번째 줄(인덱스 3)부터 데이터 시작
         for (let i = 3; i < rows.length; i++) {
           const row = rows[i];
           if (!row || row.length < 5) continue;
 
-          const teamNameFromSheet = row[1] ? row[1].trim() : "";
-          if (teamNameFromSheet) currentTeam = teamNameFromSheet;
+          const teamNameInSheet = row[1];
+          if (teamNameInSheet) currentTeam = teamNameInSheet;
 
-          // 팀명 비교 (공백 제거 후 비교)
           if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
-            // 이름(D열, 인덱스 3)이 있는 경우만 팀원 행으로 간주
-            if (row[3]) {
+            if (row[3]) { 
               teamRows.push(row);
-              
-              // ⭐ X열(24번째 열 = 인덱스 23)에서 팀 총점 추출
-              // 4칸 중 한 곳에만 있거나 모두 있을 경우를 대비해 값이 있을 때 업데이트
-              if (row[23] && row[23] !== "0" && extractedTeamTotal === "0") {
-                extractedTeamTotal = row[23];
+              if (row[23] && row[23] !== "0" && teamTotalScore === "0") {
+                teamTotalScore = row[23];
               }
             }
           }
         }
 
         if (teamRows.length === 0) {
-          document.getElementById("status").innerText = "❌ 해당 팀 데이터를 찾을 수 없습니다.";
+          document.getElementById("status").innerText = "❌ 데이터를 찾을 수 없습니다.";
           return;
         }
 
-        // 화면에 팀 총점 표시
-        document.getElementById("teamTotal").innerText = extractedTeamTotal;
-
-        // 개인별 섹터 점수 및 개인 총점 계산 (기존 로직 유지)
-        const totalIndex = 22; // W열(23번째 열)이 개인 총점일 경우 22
-        const sectorStart = 4; // E열부터 시작
-        const sectorCount = totalIndex - sectorStart;
+        document.getElementById("teamTotal").innerText = teamTotalScore;
 
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
 
         const headers = ["참가자", "번호"];
-        for (let i = 1; i <= sectorCount; i++) {
-          headers.push(i + "섹터");
+        for (let i = 1; i <= 18; i++) {
+          headers.push(i + "S"); // 공간 절약을 위해 '섹터' 대신 'S' 사용
         }
-        headers.push("개인총점");
+        headers.push("개인 총합");
 
         headers.forEach(h => {
           const th = document.createElement("th");
           th.innerText = h;
           headRow.appendChild(th);
         });
-
         thead.appendChild(headRow);
         table.appendChild(thead);
 
         const tbody = document.createElement("tbody");
         teamRows.forEach(row => {
           const tr = document.createElement("tr");
+          
           const name = row[3];
           const number = row[2];
-          const personalTotal = row[totalIndex];
-          const sectors = row.slice(sectorStart, totalIndex);
+          const sectors = row.slice(4, 22); 
+          const personalTotal = row[22]; 
+
           const cells = [name, number, ...sectors, personalTotal];
 
           cells.forEach(c => {
@@ -254,13 +231,12 @@
         document.getElementById("tableArea").appendChild(table);
 
       } catch (e) {
-        document.getElementById("status").innerText = "⚠️ 데이터 로딩 실패";
+        document.getElementById("status").innerText = "⚠️ 로딩 실패";
         console.error(e);
       }
     }
 
     loadDetail();
   </script>
-
 </body>
 </html>
