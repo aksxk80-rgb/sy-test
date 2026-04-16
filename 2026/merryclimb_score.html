@@ -76,7 +76,7 @@
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border-radius: 16px;
-      padding: 20px; /* 여백을 조금 더 넓힘 */
+      padding: 20px;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -126,10 +126,10 @@
     .team-sub { font-size: 0.8rem; color: #64748b; margin-top: 1px; }
 
     .card-right { text-align: right; }
-    /* ⭐ 총합 텍스트 스타일 강조 */
+    /* ⭐ 점수만 남기고 검은색으로 변경 */
     .total-score { 
-      font-size: 1.2rem; 
-      color: #0284c7; 
+      font-size: 1.4rem; 
+      color: #0f172a; /* 진한 검은색 */
       font-weight: 900; 
     }
     
@@ -221,7 +221,7 @@
               </div>
             </div>
             <div class="card-right">
-              <div class="total-score">총합 ${item.total}</div>
+              <div class="total-score">${item.total}</div>
             </div>
           `;
           boardEl.appendChild(card);
@@ -231,7 +231,6 @@
       }
     }
     loadScoreboard();
-    // 실시간 업데이트를 위해 30초마다 갱신 추가
     setInterval(loadScoreboard, 30000);
   </script>
 </body>
