@@ -2,132 +2,251 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>팀 상세 정보</title>
+  <title>팀 상세 정보 - MERRY CLIMB FINAL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0b1020;
-      color: #f5f5f5;
+      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
       margin: 0;
+      background: linear-gradient(180deg, #4facfe 0%, #00f2fe 40%, #fdfbfb 100%);
+      background-attachment: fixed;
+      color: #1e293b;
       padding: 20px;
+      min-height: 100vh;
     }
-    h1 { margin-bottom: 4px; }
-    .team-total { color: #fbbf24; margin-bottom: 20px; font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-    th, td { border: 1px solid rgba(255,255,255,0.15); padding: 6px; text-align: center; }
-    th { background: rgba(255,255,255,0.1); }
-    .loading { margin-top: 40px; text-align: center; color: #9ca3af; }
-    .back-btn { display: inline-block; margin-bottom: 15px; color: #9ca3af; text-decoration: none; font-size: 0.85rem; }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 20px auto 10px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      margin-bottom: 12px;
+    }
+
+    .team-total-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 15px 30px;
+      display: inline-block;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 20px rgba(7, 89, 133, 0.15);
+      border: 2px solid #38bdf8;
+    }
+
+    .team-total-label {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #075985;
+      margin-bottom: 4px;
+    }
+
+    .team-total-value {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #38bdf8;
+    }
+
+    .table-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto; 
+    }
+
+    th, td {
+      padding: 15px 12px;
+      text-align: center;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #075985;
+      font-weight: 800;
+      font-size: 0.9rem;
+      border-bottom: 3px solid #38bdf8;
+    }
+
+    th:first-child, td:first-child { min-width: 100px; font-weight: 900; color: #0f172a; }
+    th:nth-child(2), td:nth-child(2) { min-width: 60px; }
+    
+    th:not(:first-child):not(:last-child), 
+    td:not(:first-child):not(:last-child) {
+      min-width: 65px;
+    }
+
+    th:last-child, td:last-child {
+      min-width: 100px;
+      background: rgba(56, 189, 248, 0.1);
+      color: #0284c7;
+      font-weight: 900;
+      font-size: 1rem;
+    }
+
+    .back-btn {
+      display: block;
+      width: fit-content;
+      margin: 40px auto;
+      padding: 12px 32px;
+      background: #075985;
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1rem;
+      border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(7, 89, 133, 0.3);
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .back-btn:hover {
+      background: #0c4a6e;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(7, 89, 133, 0.4);
+    }
+
+    .loading { text-align: center; margin-top: 60px; font-weight: 800; color: #075985; }
   </style>
 </head>
 <body>
 
-  <a href="javascript:history.back()" class="back-btn">← 전체 순위표로 돌아가기</a>
-  <h1 id="teamName">팀 상세 정보</h1>
-  <div id="teamTotal" class="team-total"></div>
+  <div class="header-container">
+    <h1 id="teamName">팀 상세 정보</h1>
+    <div class="team-total-card">
+      <div class="team-total-label">FINAL TEAM T-TOTAL</div>
+      <div id="teamTotal" class="team-total-value">- T</div>
+    </div>
+  </div>
 
-  <div id="status" class="loading">데이터 불러오는 중...</div>
-  <div id="tableArea"></div>
+  <div id="status" class="loading">결승전 데이터를 불러오는 중...</div>
+  
+  <div class="table-wrapper" id="tableContainer" style="display: none;">
+    <div id="tableArea"></div>
+  </div>
 
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const teamParam = urlParams.get("team") || "";
+  <a href="javascript:history.back()" class="back-btn">메인 리더보드로 돌아가기</a>
 
-  // ✅ gid=28014312 및 내보내기 형식 적용
-  const CSV_URL = "https://docs.google.com/spreadsheets/d/1kvBovpQTtlSROqo8euDIVurr8v5MTKiQBd4-gFyXHe4/export?format=csv&gid=28014312";
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const teamParam = urlParams.get("team") || "";
 
-  if (teamParam) {
-    document.getElementById("teamName").innerText = teamParam + " 팀 상세 정보";
-  }
+    // ✅ 결승전 데이터 시트 (T데이터 탭: gid=28014312)
+    const SPREADSHEET_ID = "1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8";
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=28014312`;
 
-  async function loadDetail() {
-    try {
-      const res = await fetch(CSV_URL);
-      if (!res.ok) throw new Error("네트워크 응답 오류");
-      const text = await res.text();
+    document.getElementById("teamName").innerText = "🏆 " + teamParam + " 팀 상세 정보";
 
-      const rows = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
-        .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
+    async function loadDetail() {
+      try {
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
 
-      let teamRows = [];
-      let lastIdentifiedTeam = ""; // 💡 병합된 셀 처리를 위해 팀명을 기억합니다.
+        const rows = text.replace(/\r/g, "").split("\n")
+          .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
-      // CSV 데이터 탐색 (시트 구조에 맞춰 4번째 줄부터 시작)
-      for (let i = 3; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row || row.length < 5) continue;
+        let teamRows = [];
+        let currentTeam = "";
+        let teamTotalScore = "0";
 
-        // B열(인덱스 1)에 팀명이 있으면 갱신, 없으면 기존 팀명 유지 (병합 대응)
-        const teamNameFromSheet = row[1];
-        if (teamNameFromSheet && teamNameFromSheet.trim() !== "") {
-          lastIdentifiedTeam = teamNameFromSheet.trim();
+        // AD열(29번 인덱스)에서 합계를 가져오기 위한 설정
+        const AD_COL_IDX = 29; 
+
+        for (let i = 3; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.length < 5) continue;
+
+          // B열(인덱스 1) 팀명 확인
+          const sheetTeam = row[1];
+          if (sheetTeam) currentTeam = sheetTeam;
+
+          if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
+            if (row[3]) { // D열(이름)이 있는 행만 추가
+              teamRows.push(row);
+              // 팀의 첫 줄에서 AD열의 합계값을 가져옴
+              if (row[AD_COL_IDX] && row[AD_COL_IDX] !== "" && teamTotalScore === "0") {
+                teamTotalScore = row[AD_COL_IDX];
+              }
+            }
+          }
         }
 
-        // 💡 기억하고 있는 팀명과 비교
-        if (lastIdentifiedTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
-          teamRows.push(row);
+        if (teamRows.length === 0) {
+          document.getElementById("status").innerText = "❌ 해당 팀의 데이터를 찾을 수 없습니다.";
+          return;
         }
-      }
 
-      if (teamRows.length === 0) {
-        document.getElementById("status").innerText = "'" + teamParam + "' 팀의 데이터를 찾을 수 없습니다.";
-        return;
-      }
+        document.getElementById("teamTotal").innerText = teamTotalScore + " T";
 
-      const totalIndex = teamRows[0].length - 2;
-      const teamTotalIndex = teamRows[0].length - 1;
-      const sectorStart = 4;
-      const sectorCount = totalIndex - sectorStart;
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const headRow = document.createElement("tr");
 
-      const teamTotalScore = teamRows[0][teamTotalIndex];
-      document.getElementById("teamTotal").innerText = "팀 총합: " + (teamTotalScore || "0");
+        // 섹터 헤더 생성 (E열~AC열 직전까지)
+        const sectorStart = 4;
+        const personalTotalIdx = 28; // AC열
+        const sectorCount = personalTotalIdx - sectorStart;
 
-      const table = document.createElement("table");
-      const thead = document.createElement("thead");
-      const headRow = document.createElement("tr");
+        const headers = ["참가자", "번호"];
+        for (let i = 1; i <= sectorCount; i++) {
+          headers.push(i + " S");
+        }
+        headers.push("개인 총합");
 
-      const headers = ["참가자", "번호"];
-      for (let i = 1; i <= sectorCount; i++) headers.push(i + "섹터");
-      headers.push("개인 총점");
-
-      headers.forEach(h => {
-        const th = document.createElement("th");
-        th.innerText = h;
-        headRow.appendChild(th);
-      });
-
-      thead.appendChild(headRow);
-      table.appendChild(thead);
-
-      const tbody = document.createElement("tbody");
-      teamRows.forEach(row => {
-        const tr = document.createElement("tr");
-        const name = row[3];
-        const number = row[2];
-        const personalTotal = row[totalIndex];
-        const sectors = row.slice(sectorStart, totalIndex);
-
-        const cells = [name, number, ...sectors, personalTotal];
-        cells.forEach(c => {
-          const td = document.createElement("td");
-          td.innerText = c || "0";
-          tr.appendChild(td);
+        headers.forEach(h => {
+          const th = document.createElement("th");
+          th.innerText = h;
+          headRow.appendChild(th);
         });
-        tbody.appendChild(tr);
-      });
+        thead.appendChild(headRow);
+        table.appendChild(thead);
 
-      table.appendChild(tbody);
-      document.getElementById("status").style.display = "none";
-      document.getElementById("tableArea").appendChild(table);
+        const tbody = document.createElement("tbody");
+        teamRows.forEach(row => {
+          const tr = document.createElement("tr");
+          
+          const name = row[3]; // D열
+          const number = row[2]; // C열
+          const sectors = row.slice(sectorStart, personalTotalIdx);
+          const pTotal = row[personalTotalIdx];
 
-    } catch (e) {
-      document.getElementById("status").innerText = "데이터 로딩 실패: 시트 웹 게시 설정을 확인하세요.";
-      console.error(e);
+          const cells = [name, number, ...sectors, pTotal];
+
+          cells.forEach(c => {
+            const td = document.createElement("td");
+            td.innerText = c || "0";
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        document.getElementById("status").style.display = "none";
+        document.getElementById("tableContainer").style.display = "block";
+        document.getElementById("tableArea").appendChild(table);
+
+      } catch (e) {
+        document.getElementById("status").innerText = "⚠️ 데이터를 가져오는 데 실패했습니다.";
+        console.error(e);
+      }
     }
-  }
 
-  loadDetail();
-</script>
-
+    loadDetail();
+  </script>
 </body>
 </html>
