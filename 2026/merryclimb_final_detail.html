@@ -85,11 +85,6 @@
 
     th:first-child, td:first-child { min-width: 100px; font-weight: 900; color: #0f172a; }
     th:nth-child(2), td:nth-child(2) { min-width: 60px; }
-    
-    th:not(:first-child):not(:last-child), 
-    td:not(:first-child):not(:last-child) {
-      min-width: 65px;
-    }
 
     th:last-child, td:last-child {
       min-width: 100px;
@@ -134,7 +129,7 @@
     </div>
   </div>
 
-  <div id="status" class="loading">데이터를 전송받고 있습니다...</div>
+  <div id="status" class="loading">데이터를 실시간으로 분석 중입니다...</div>
   
   <div class="table-wrapper" id="tableContainer" style="display: none;">
     <div id="tableArea"></div>
@@ -146,7 +141,6 @@
     const urlParams = new URLSearchParams(window.location.search);
     const teamParam = urlParams.get("team") || "";
 
-    // ✅ 결승전 시트 URL (gid=28014312)
     const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=28014312";
 
     document.getElementById("teamName").innerText = "🏆 " + teamParam + " 팀 상세 정보";
@@ -163,6 +157,11 @@
         let currentTeam = "";
         let teamTotalScore = "0";
 
+        // ✅ 고정 인덱스 (수정 시 여기만 확인하세요)
+        const SECTOR_START_IDX = 4;   // E열
+        const PERSONAL_TOTAL_IDX = 22; // W열
+        const TEAM_TOTAL_IDX = 23;     // X열
+
         for (let i = 3; i < rows.length; i++) {
           const row = rows[i];
           if (!row || row.length < 5) continue;
@@ -173,9 +172,8 @@
           if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
             if (row[3]) { 
               teamRows.push(row);
-              // ✅ 팀 총점 위치: X열 (인덱스 23)
-              if (row[23] && row[23] !== "0" && teamTotalScore === "0") {
-                teamTotalScore = row[23];
+              if (row[TEAM_TOTAL_IDX] && row[TEAM_TOTAL_IDX] !== "0" && teamTotalScore === "0") {
+                teamTotalScore = row[TEAM_TOTAL_IDX];
               }
             }
           }
@@ -188,12 +186,24 @@
 
         document.getElementById("teamTotal").innerText = teamTotalScore;
 
+        // ⭐ 데이터가 들어있는 최대 섹터 번호 찾기 (공백 숨김 로직)
+        let maxActiveSector = 1; 
+        teamRows.forEach(row => {
+          for (let s = SECTOR_START_IDX; s < PERSONAL_TOTAL_IDX; s++) {
+            if (row[s] && row[s] !== "0" && row[s] !== "") {
+              const currentSectorNum = s - SECTOR_START_IDX + 1;
+              if (currentSectorNum > maxActiveSector) maxActiveSector = currentSectorNum;
+            }
+          }
+        });
+
         const table = document.createElement("table");
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
 
+        // 헤더 생성 (데이터가 있는 섹터까지만)
         const headers = ["참가자", "번호"];
-        for (let i = 1; i <= 18; i++) {
+        for (let i = 1; i <= maxActiveSector; i++) {
           headers.push(i + " 섹터");
         }
         headers.push("개인 총합");
@@ -212,8 +222,9 @@
           
           const name = row[3];
           const number = row[2];
-          const sectors = row.slice(4, 22); // ✅ 1~18 섹터 (인덱스 4~22)
-          const personalTotal = row[22];    // ✅ 개인 총합 (인덱스 22)
+          // 활성화된 섹터 수만큼만 자르기
+          const sectors = row.slice(SECTOR_START_IDX, SECTOR_START_IDX + maxActiveSector);
+          const personalTotal = row[PERSONAL_TOTAL_IDX];
 
           const cells = [name, number, ...sectors, personalTotal];
 
