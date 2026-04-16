@@ -3,64 +3,166 @@
 <head>
   <meta charset="UTF-8" />
   <title>팀 상세 정보</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0b1020;
-      color: #f5f5f5;
+      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+      /* 메인 페이지와 동일한 시원한 여름 그라데이션 */
+      background: linear-gradient(180deg, #4facfe 0%, #00f2fe 40%, #fdfbfb 100%);
+      background-attachment: fixed;
+      color: #1e293b;
       margin: 0;
       padding: 20px;
+      min-height: 100vh;
+    }
+
+    .header-container {
+      max-width: 800px;
+      margin: 20px auto 10px;
+      text-align: center;
     }
 
     h1 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      margin-bottom: 8px;
+    }
+
+    /* 🏆 팀 총점 카드 스타일 */
+    .team-total-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 15px 20px;
+      display: inline-block;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 15px rgba(0, 119, 182, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .team-total-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #64748b;
       margin-bottom: 4px;
     }
 
-    .team-total {
-      color: #fbbf24;
-      margin-bottom: 20px;
+    .team-total-value {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #0284c7;
+    }
+
+    /* 📊 데이터 테이블 컨테이너 */
+    .table-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      overflow-x: auto; /* 모바일 대응 가로 스크롤 */
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.85rem;
-    }
-
-    th, td {
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 6px;
-      text-align: center;
+      min-width: 500px; /* 너무 좁아지지 않게 설정 */
     }
 
     th {
-      background: rgba(255,255,255,0.1);
+      background: rgba(7, 89, 133, 0.05);
+      color: #075985;
+      font-weight: 800;
+      font-size: 0.85rem;
+      padding: 14px 10px;
+      border-bottom: 2px solid rgba(7, 89, 133, 0.1);
+    }
+
+    td {
+      padding: 12px 10px;
+      text-align: center;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* 참가자 강조 */
+    td:first-child {
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    /* 총점 열 강조 */
+    td:last-child {
+      color: #0284c7;
+      font-weight: 800;
     }
 
     .loading {
-      margin-top: 40px;
       text-align: center;
-      color: #9ca3af;
+      margin-top: 60px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .back-btn {
+      display: block;
+      width: fit-content;
+      margin: 30px auto;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 30px;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.5);
     }
   </style>
 </head>
 <body>
 
-  <h1 id="teamName">팀 상세 정보</h1>
-  <div id="teamTotal" class="team-total"></div>
+  <div class="header-container">
+    <h1 id="teamName">팀 상세 정보</h1>
+    <div class="team-total-card">
+      <div class="team-total-label">TEAM TOTAL SCORE</div>
+      <div id="teamTotal" class="team-total-value">-</div>
+    </div>
+  </div>
 
-  <div id="status" class="loading">데이터 불러오는 중...</div>
-  <div id="tableArea"></div>
+  <div id="status" class="loading">파도를 타고 데이터를 불러오는 중...</div>
+  
+  <div class="table-wrapper" id="tableContainer" style="display: none;">
+    <div id="tableArea"></div>
+  </div>
+
+  <a href="javascript:history.back()" class="back-btn">← 뒤로 가기</a>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const teamParam = urlParams.get("team");
+    const teamParam = urlParams.get("team") || "알 수 없는";
 
-    const CSV_URL =
-      "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=28014312";
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8/export?format=csv&gid=28014312";
 
-    document.getElementById("teamName").innerText = teamParam + " 팀 상세 정보";
+    document.getElementById("teamName").innerText = "🌊 " + teamParam + " 팀 상세 정보";
 
     async function loadDetail() {
       try {
@@ -74,55 +176,39 @@
         let teamRows = [];
         let currentTeam = "";
 
-        // CSV는 4번째 줄(인덱스 3)부터 데이터 시작
         for (let i = 3; i < rows.length; i++) {
           const row = rows[i];
           if (!row || row.length < 5) continue;
 
           const teamName = row[1] ? row[1].trim() : "";
-          const number = row[2];
-          const name = row[3];
-
           if (teamName) currentTeam = teamName;
 
-          if (
-            currentTeam.replace(/\s+/g, "") ===
-            teamParam.replace(/\s+/g, "")
-          ) {
+          if (currentTeam.replace(/\s+/g, "") === teamParam.replace(/\s+/g, "")) {
             teamRows.push(row);
           }
         }
 
         if (teamRows.length === 0) {
-          document.getElementById("status").innerText = "해당 팀 데이터를 찾을 수 없습니다.";
+          document.getElementById("status").innerText = "❌ 해당 팀 데이터를 찾을 수 없습니다.";
           return;
         }
 
-        // ⭐ 자동 인식: 총점은 마지막에서 두 번째 컬럼
         const totalIndex = teamRows[0].length - 2;
-
-        // ⭐ 자동 인식: 섹터는 4번부터 총점 바로 전까지
         const sectorStart = 4;
         const sectorCount = totalIndex - sectorStart;
-
-        // 팀합산은 마지막 컬럼
         const teamTotal = teamRows[0][teamRows[0].length - 1];
-        document.getElementById("teamTotal").innerText = "팀 총합: " + teamTotal;
+        
+        document.getElementById("teamTotal").innerText = teamTotal;
 
-        // 표 만들기
         const table = document.createElement("table");
-
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
 
         const headers = ["참가자", "번호"];
-
-        // ⭐ 섹터 헤더 자동 생성
         for (let i = 1; i <= sectorCount; i++) {
           headers.push(i + "섹터");
         }
-
-        headers.push("총점");
+        headers.push("총합");
 
         headers.forEach(h => {
           const th = document.createElement("th");
@@ -134,17 +220,12 @@
         table.appendChild(thead);
 
         const tbody = document.createElement("tbody");
-
         teamRows.forEach(row => {
           const tr = document.createElement("tr");
-
           const name = row[3];
           const number = row[2];
-
           const total = row[totalIndex];
-
           const sectors = row.slice(sectorStart, totalIndex);
-
           const cells = [name, number, ...sectors, total];
 
           cells.forEach(c => {
@@ -152,17 +233,16 @@
             td.innerText = c;
             tr.appendChild(td);
           });
-
           tbody.appendChild(tr);
         });
 
         table.appendChild(tbody);
-
         document.getElementById("status").style.display = "none";
+        document.getElementById("tableContainer").style.display = "block";
         document.getElementById("tableArea").appendChild(table);
 
       } catch (e) {
-        document.getElementById("status").innerText = "데이터 로딩 실패";
+        document.getElementById("status").innerText = "⚠️ 데이터 로딩 실패";
         console.error(e);
       }
     }
