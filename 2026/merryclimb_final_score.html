@@ -90,7 +90,7 @@
       const header = rowsRank[0].split(",");
       const rankIdx = header.findIndex(h => h.includes("순위"));
       const nameIdx = header.findIndex(h => h.includes("팀명"));
-      const tIdx = header.findIndex(h => h.includes("T 합계"));
+      const tIdx = header.findIndex(h => h.includes("T"));
       const totalIdx = header.findIndex(h => h.includes("총점"));
 
       const dataRows = rowsRank.slice(1).map(r => r.split(","));
