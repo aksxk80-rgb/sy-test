@@ -70,68 +70,49 @@
   </div>
 
   <script>
-    // ✅ 결승 시트 정보 (준결승과 동일한 ID, 다른 gid 사용)
-    const SPREADSHEET_ID = "1BgeBpjbcBa3b-k9rBhpygxIYKOgNSH81Z71p1a-D1N8";
-    const CSV_URL_RANK = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=914454642`; // 결승 순위표
-    const CSV_URL_T = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=28014312`;    // 결승 T 데이터
+  // ✅ 1. 본인의 시트 정보로 업데이트
+  const SPREADSHEET_ID = "11yRg8F7b2yIRZFRvfsvzOjHJWxE5tecqYTPkCwEgJqo";
+  const RANK_GID = "768457891"; // 구글 시트 '순위표' 탭의 GID
+  const CSV_URL_RANK = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${RANK_GID}`;
 
-    let allFinalists = [];
+  let allFinalists = [];
 
-    async function loadScoreboard() {
+  async function loadScoreboard() {
     try {
-      // ✅ [중요] 캐시 방지: 주소 뒤에 매번 바뀌는 숫자를 붙여 구글 서버의 옛날 데이터를 무시함
       const cacheBuster = new Date().getTime();
-      const [resRank, resT] = await Promise.all([ 
-        fetch(`${CSV_URL_RANK}&cache=${cacheBuster}`), 
-        fetch(`${CSV_URL_T}&cache=${cacheBuster}`) 
-      ]);
+      // 기존에는 T 데이터와 순위표를 따로 불러왔지만, 
+      // 이제 '순위표' 탭에 모든 합계가 있으므로 한 번만 불러오면 됩니다.
+      const response = await fetch(`${CSV_URL_RANK}&cache=${cacheBuster}`);
+      const textRank = await response.text();
 
-      const textRank = await resRank.text();
-      const textT = await resT.text();
-
-      // 1. T 합계(AD열) 매핑 로직
-      const rowsT = textT.split("\n").map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
-      const tMap = new Map();
-      
-      const AD_COL_IDX = 29;   // AD열 (T 합계 개수)
-      const TEAM_NAME_IDX = 1; // B열 (팀명)
-
-      rowsT.forEach(row => {
-        const teamName = row[TEAM_NAME_IDX];
-        const tCountValue = row[AD_COL_IDX]; // T의 개수
-        if (teamName && tCountValue !== undefined) {
-          const cleanName = teamName.replace(/\s+/g, "");
-          tMap.set(cleanName, tCountValue);
-        }
-      });
-
-      // 2. 순위표 데이터 결합
+      // CSV 줄 단위 분리 및 정리
       let rowsRank = textRank.replace(/\r/g, "").split("\n")
         .map(r => r.replace(/^\uFEFF/, "").trim())
         .filter(r => r.length > 5);
 
+      // 헤더에서 열 위치 찾기 (순위, 팀명, T 합계, 총점)
       const header = rowsRank[0].split(",");
-      const dataRows = rowsRank.slice(1).map(r => r.split(","));
-
       const rankIdx = header.findIndex(h => h.includes("순위"));
       const nameIdx = header.findIndex(h => h.includes("팀명"));
+      const tIdx = header.findIndex(h => h.includes("T 합계"));
       const totalIdx = header.findIndex(h => h.includes("총점"));
+
+      const dataRows = rowsRank.slice(1).map(r => r.split(","));
 
       allFinalists = dataRows.map(cols => {
         const rank = cols[rankIdx]?.trim();
-        const rawName = cols[nameIdx]?.trim();
-        const total = cols[totalIdx]?.trim(); // X열 기반 총점
-        const cleanName = rawName ? rawName.replace(/\s+/g, "") : "";
-        
-        // AD열에서 가져온 T 개수, 없으면 0
-        const tValue = tMap.get(cleanName) || "0";
+        const teamName = cols[nameIdx]?.trim();
+        const tValue = cols[tIdx]?.trim() || "0";
+        const total = cols[totalIdx]?.trim() || "0";
 
-        if (!rank || !rawName) return null;
+        if (!rank || !teamName) return null;
+        
         return { 
           rank: Number(rank), 
-          displayName: rawName, 
-          total: total || "0", 
-          tValue: tValue 
+          displayName: teamName, // 화면에 표시될 이름
+          total: total,          // 총점 (D열)
+          tValue: tValue,        // T 합계 (C열)
+          teamKeyName: teamName  // 상세페이지 연결용 키값
         };
       }).filter(Boolean).sort((a, b) => a.rank - b.rank);
 
@@ -144,53 +125,61 @@
     }
   }
 
-    function filterTeams() {
-      const searchTerm = document.getElementById("teamSearch").value.toLowerCase().replace(/\s+/g, "");
-      const boardEl = document.getElementById("board");
-      
-      const filtered = allFinalists.filter(team => 
-        team.displayName.toLowerCase().replace(/\s+/g, "").includes(searchTerm)
-      );
+  // ✅ 검색 및 필터링 (기존 로직 유지)
+  function filterTeams() {
+    const searchTerm = document.getElementById("teamSearch").value.toLowerCase().replace(/\s+/g, "");
+    const boardEl = document.getElementById("board");
+    
+    const filtered = allFinalists.filter(team => 
+      team.displayName.toLowerCase().replace(/\s+/g, "").includes(searchTerm)
+    );
 
-      boardEl.innerHTML = "";
-      if (filtered.length === 0) {
-        boardEl.innerHTML = `<div class="no-result">일치하는 팀이 없습니다. 🏆</div>`;
-        return;
-      }
-
-      filtered.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-        let badgeClass = "rank-badge";
-        let badgeText = item.rank + "위";
-
-        if (item.rank === 1) { card.classList.add("rank-1-card"); badgeClass += " rank-1-badge"; badgeText = "🥇"; }
-        else if (item.rank === 2) { card.classList.add("rank-2-card"); badgeClass += " rank-2-badge"; badgeText = "🥈"; }
-        else if (item.rank === 3) { card.classList.add("rank-3-card"); badgeClass += " rank-3-badge"; badgeText = "🥉"; }
-
-        card.onclick = () => {
-          window.location.href = `/sy-test/2026/merryclimb_final_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
-        };
-
-        card.innerHTML = `
-          <div class="card-left">
-            <div class="${badgeClass}">${badgeText}</div>
-            <div class="team-info">
-              <div class="team-name">${item.displayName}</div>
-              <div class="team-sub">팀명: ${item.teamKeyName}</div>
-            </div>
-          </div>
-          <div class="card-right">
-            <div class="t-score">${item.tValue} T</div>
-            <div class="total-score-label">총합: ${item.total}</div>
-          </div>
-        `;
-        boardEl.appendChild(card);
-      });
+    boardEl.innerHTML = "";
+    if (filtered.length === 0) {
+      boardEl.innerHTML = `<div class="no-result">일치하는 팀이 없습니다. 🏆</div>`;
+      return;
     }
 
-    loadScoreboard();
-    setInterval(loadScoreboard, 30000);
-  </script>
+    filtered.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "card";
+      
+      // 순위에 따른 카드 스타일 (기존 UI 유지)
+      if (item.rank === 1) card.classList.add("rank-1-card");
+      else if (item.rank === 2) card.classList.add("rank-2-card");
+      else if (item.rank === 3) card.classList.add("rank-3-card");
+
+      let badgeClass = "rank-badge";
+      let badgeText = item.rank + "위";
+      if (item.rank === 1) { badgeClass += " rank-1-badge"; badgeText = "🥇"; }
+      else if (item.rank === 2) { badgeClass += " rank-2-badge"; badgeText = "🥈"; }
+      else if (item.rank === 3) { badgeClass += " rank-3-badge"; badgeText = "🥉"; }
+
+      // ✅ 상세 페이지 이동 연결
+      card.onclick = () => {
+        // 기존 주소 체계 유지 (파일 경로나 이름은 상황에 맞게 수정하세요)
+        window.location.href = `merryclimb_final_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+      };
+
+      card.innerHTML = `
+        <div class="card-left">
+          <div class="${badgeClass}">${badgeText}</div>
+          <div class="team-info">
+            <div class="team-name">${item.displayName}</div>
+            <div class="team-sub">팀전 순위권</div>
+          </div>
+        </div>
+        <div class="card-right">
+          <div class="t-score">${item.tValue} T</div>
+          <div class="total-score-label">총점: ${item.total}</div>
+        </div>
+      `;
+      boardEl.appendChild(card);
+    });
+  }
+
+  loadScoreboard();
+  setInterval(loadScoreboard, 30000); // 30초마다 자동 갱신
+</script>
 </body>
 </html>
