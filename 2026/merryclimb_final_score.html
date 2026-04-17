@@ -78,57 +78,71 @@
     let allFinalists = [];
 
     async function loadScoreboard() {
-      try {
-        const [resRank, resT] = await Promise.all([ fetch(CSV_URL_RANK), fetch(CSV_URL_T) ]);
-        const textRank = await resRank.text();
-        const textT = await resT.text();
+    try {
+      // ✅ [중요] 캐시 방지: 주소 뒤에 매번 바뀌는 숫자를 붙여 구글 서버의 옛날 데이터를 무시함
+      const cacheBuster = new Date().getTime();
+      const [resRank, resT] = await Promise.all([ 
+        fetch(`${CSV_URL_RANK}&cache=${cacheBuster}`), 
+        fetch(`${CSV_URL_T}&cache=${cacheBuster}`) 
+      ]);
 
-        // 1. AD열 T 합계 매핑
-        const rowsT = textT.split("\n").map(r => r.split(","));
-        const tMap = new Map();
-        const AD_COL_IDX = 29; 
-        const TEAM_NAME_IDX = 1; 
+      const textRank = await resRank.text();
+      const textT = await resT.text();
 
-        rowsT.forEach(row => {
-          const teamName = row[TEAM_NAME_IDX]?.trim();
-          const tSumValue = row[AD_COL_IDX]?.trim();
-          if (teamName && tSumValue && tSumValue !== "" && tSumValue !== "T합계") {
-            const cleanName = teamName.replace(/\s+/g, "");
-            tMap.set(cleanName, tSumValue);
-          }
-        });
+      // 1. T 합계(AD열) 매핑 로직
+      const rowsT = textT.split("\n").map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
+      const tMap = new Map();
+      
+      const AD_COL_IDX = 29;   // AD열 (T 합계 개수)
+      const TEAM_NAME_IDX = 1; // B열 (팀명)
 
-        // 2. 순위표 데이터 결합
-        let rowsRank = textRank.replace(/\r/g, "").split("\n")
-          .map(r => r.replace(/^\uFEFF/, "").trim())
-          .filter(r => r.length > 5);
+      rowsT.forEach(row => {
+        const teamName = row[TEAM_NAME_IDX];
+        const tCountValue = row[AD_COL_IDX]; // T의 개수
+        if (teamName && tCountValue !== undefined) {
+          const cleanName = teamName.replace(/\s+/g, "");
+          tMap.set(cleanName, tCountValue);
+        }
+      });
 
-        const header = rowsRank[0].split(",");
-        const dataRows = rowsRank.slice(1).map(r => r.split(","));
+      // 2. 순위표 데이터 결합
+      let rowsRank = textRank.replace(/\r/g, "").split("\n")
+        .map(r => r.replace(/^\uFEFF/, "").trim())
+        .filter(r => r.length > 5);
 
-        const rankIdx = header.findIndex(h => h.includes("순위"));
-        const nameIdx = header.findIndex(h => h.includes("팀명"));
-        const totalIdx = header.findIndex(h => h.includes("총점"));
+      const header = rowsRank[0].split(",");
+      const dataRows = rowsRank.slice(1).map(r => r.split(","));
 
-        allFinalists = dataRows.map(cols => {
-          const rank = cols[rankIdx]?.trim();
-          const rawName = cols[nameIdx]?.trim();
-          const total = cols[totalIdx]?.trim();
-          const cleanName = rawName ? rawName.replace(/\s+/g, "") : "";
-          const tValue = tMap.get(cleanName) || "0";
+      const rankIdx = header.findIndex(h => h.includes("순위"));
+      const nameIdx = header.findIndex(h => h.includes("팀명"));
+      const totalIdx = header.findIndex(h => h.includes("총점"));
 
-          if (!rank || !rawName) return null;
-          return { rank: Number(rank), displayName: rawName, teamKeyName: rawName, total: total || "0", tValue: tValue };
-        }).filter(Boolean).sort((a, b) => a.rank - b.rank);
+      allFinalists = dataRows.map(cols => {
+        const rank = cols[rankIdx]?.trim();
+        const rawName = cols[nameIdx]?.trim();
+        const total = cols[totalIdx]?.trim(); // X열 기반 총점
+        const cleanName = rawName ? rawName.replace(/\s+/g, "") : "";
+        
+        // AD열에서 가져온 T 개수, 없으면 0
+        const tValue = tMap.get(cleanName) || "0";
 
-        document.getElementById("status").style.display = "none";
-        filterTeams(); 
+        if (!rank || !rawName) return null;
+        return { 
+          rank: Number(rank), 
+          displayName: rawName, 
+          total: total || "0", 
+          tValue: tValue 
+        };
+      }).filter(Boolean).sort((a, b) => a.rank - b.rank);
 
-      } catch (err) {
-        document.getElementById("status").textContent = "데이터 로딩 실패";
-        console.error(err);
-      }
+      document.getElementById("status").style.display = "none";
+      filterTeams(); 
+
+    } catch (err) {
+      document.getElementById("status").textContent = "데이터 갱신 중... (잠시만 기다려주세요)";
+      console.error(err);
     }
+  }
 
     function filterTeams() {
       const searchTerm = document.getElementById("teamSearch").value.toLowerCase().replace(/\s+/g, "");
