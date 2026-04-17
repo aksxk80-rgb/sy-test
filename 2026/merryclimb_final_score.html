@@ -80,17 +80,13 @@
   async function loadScoreboard() {
     try {
       const cacheBuster = new Date().getTime();
-      // 기존에는 T 데이터와 순위표를 따로 불러왔지만, 
-      // 이제 '순위표' 탭에 모든 합계가 있으므로 한 번만 불러오면 됩니다.
       const response = await fetch(`${CSV_URL_RANK}&cache=${cacheBuster}`);
       const textRank = await response.text();
 
-      // CSV 줄 단위 분리 및 정리
       let rowsRank = textRank.replace(/\r/g, "").split("\n")
         .map(r => r.replace(/^\uFEFF/, "").trim())
         .filter(r => r.length > 5);
 
-      // 헤더에서 열 위치 찾기 (순위, 팀명, T 합계, 총점)
       const header = rowsRank[0].split(",");
       const rankIdx = header.findIndex(h => h.includes("순위"));
       const nameIdx = header.findIndex(h => h.includes("팀명"));
@@ -109,10 +105,10 @@
         
         return { 
           rank: Number(rank), 
-          displayName: teamName, // 화면에 표시될 이름
-          total: total,          // 총점 (D열)
-          tValue: tValue,        // T 합계 (C열)
-          teamKeyName: teamName  // 상세페이지 연결용 키값
+          displayName: teamName, 
+          total: total, 
+          tValue: tValue,
+          teamKeyName: teamName 
         };
       }).filter(Boolean).sort((a, b) => a.rank - b.rank);
 
@@ -120,12 +116,11 @@
       filterTeams(); 
 
     } catch (err) {
-      document.getElementById("status").textContent = "데이터 갱신 중... (잠시만 기다려주세요)";
+      document.getElementById("status").textContent = "데이터 갱신 중...";
       console.error(err);
     }
   }
 
-  // ✅ 검색 및 필터링 (기존 로직 유지)
   function filterTeams() {
     const searchTerm = document.getElementById("teamSearch").value.toLowerCase().replace(/\s+/g, "");
     const boardEl = document.getElementById("board");
@@ -144,7 +139,6 @@
       const card = document.createElement("div");
       card.className = "card";
       
-      // 순위에 따른 카드 스타일 (기존 UI 유지)
       if (item.rank === 1) card.classList.add("rank-1-card");
       else if (item.rank === 2) card.classList.add("rank-2-card");
       else if (item.rank === 3) card.classList.add("rank-3-card");
@@ -155,18 +149,16 @@
       else if (item.rank === 2) { badgeClass += " rank-2-badge"; badgeText = "🥈"; }
       else if (item.rank === 3) { badgeClass += " rank-3-badge"; badgeText = "🥉"; }
 
-      // ✅ 상세 페이지 이동 연결
       card.onclick = () => {
-        // 기존 주소 체계 유지 (파일 경로나 이름은 상황에 맞게 수정하세요)
         window.location.href = `merryclimb_final_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
       };
 
+      // ✅ 변경된 부분: '팀전 순위권' 삭제 및 팀명 세로 중앙 정렬 스타일 적용
       card.innerHTML = `
-        <div class="card-left">
+        <div class="card-left" style="display: flex; align-items: center;">
           <div class="${badgeClass}">${badgeText}</div>
-          <div class="team-info">
-            <div class="team-name">${item.displayName}</div>
-            <div class="team-sub">팀전 순위권</div>
+          <div class="team-info" style="display: flex; align-items: center; margin-left: 10px;">
+            <div class="team-name" style="margin: 0; line-height: 1.2;">${item.displayName}</div>
           </div>
         </div>
         <div class="card-right">
@@ -179,7 +171,7 @@
   }
 
   loadScoreboard();
-  setInterval(loadScoreboard, 30000); // 30초마다 자동 갱신
+  setInterval(loadScoreboard, 30000);
 </script>
 </body>
 </html>
