@@ -51,44 +51,50 @@
     document.getElementById("teamName").innerText = "🏆 " + teamParam + " 상세 기록";
 
     async function loadDetail() {
-      try {
-        const cacheBuster = new Date().getTime();
-        const res = await fetch(`${CSV_URL}&cache=${cacheBuster}`);
-        const text = await res.text();
+  try {
+    const cacheBuster = new Date().getTime();
+    const res = await fetch(`${CSV_URL}&cache=${cacheBuster}`);
+    const text = await res.text();
 
-        const rows = text.replace(/\r/g, "").split("\n")
-          .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
+    const rows = text.replace(/\r/g, "").split("\n")
+      .map(r => r.split(",").map(c => c.replace(/"/g, "").trim()));
 
-        // ✅ DATA 탭 기준 인덱스 설정
-        // C(2):팀명, D(3):성명, H(7), L(11), P(15), T(19), X(23), AB(27), AF(31), AJ(35), AN(39), AR(43)... 순서 (섹터 점수열)
-        const teamNameIdx = 2;
-        const nameIdx = 3;
-        const scoreColIndices = [7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55, 59, 63, 67, 71, 75]; // 1~18번 문제 점수열 (H, L, P, T, X, AB...)
-        const personalTotalIdx = 79; // CB열 (총점)
+    const header = rows[0]; // 시트의 1행(헤더)
 
-        let teamRows = rows.filter(row => row[teamNameIdx] === teamParam);
-        
-        if (teamRows.length === 0) {
-          document.getElementById("status").innerText = "❌ 해당 팀의 데이터를 찾을 수 없습니다.";
-          return;
-        }
+    // ✅ 열 위치 자동 찾기 로직
+    const teamNameIdx = header.indexOf("팀명");
+    const nameIdx = header.indexOf("성명");
+    const personalTotalIdx = header.indexOf("총점");
 
-        // 1. 팀 전체 점수 합산 (화면 상단 표시용)
-        let teamSum = 0;
-        teamRows.forEach(r => teamSum += Number(r[personalTotalIdx] || 0));
-        document.getElementById("teamTotal").innerText = teamSum.toFixed(1);
+    // "점수"라는 단어가 포함된 모든 열의 인덱스를 추출 (1번 점수, 2번 점수...)
+    const scoreColIndices = [];
+    header.forEach((h, idx) => {
+      if (h.includes("점수") && !h.includes("총점")) {
+        scoreColIndices.push(idx);
+      }
+    });
 
-        // 2. 최대 활성화 섹터 찾기 (문제가 풀린 곳까지만 표시)
-        // 전체 참가자 중 해당 섹터에 점수가 하나라도 있는 가장 높은 인덱스를 찾음
-        let maxActiveSectorIdx = 0;
-        for (let sIdx = 0; sIdx < scoreColIndices.length; sIdx++) {
-          const colPos = scoreColIndices[sIdx];
-          const hasScore = teamRows.some(row => Number(row[colPos] || 0) > 0);
-          if (hasScore) maxActiveSectorIdx = sIdx;
-        }
+    let teamRows = rows.filter(row => row[teamNameIdx] === teamParam);
+    
+    if (teamRows.length === 0) {
+      document.getElementById("status").innerText = "❌ 해당 팀의 데이터를 찾을 수 없습니다.";
+      return;
+    }
 
-        // 3. 테이블 생성
-        const table = document.createElement("table");
+    // 1. 팀 전체 점수 합산
+    let teamSum = 0;
+    teamRows.forEach(r => teamSum += Number(r[personalTotalIdx] || 0));
+    document.getElementById("teamTotal").innerText = teamSum.toFixed(1);
+
+    // 2. 최대 활성화 문제 찾기 (데이터가 있는 마지막 문제까지)
+    let maxActiveIdx = 0;
+    scoreColIndices.forEach((colPos, sIdx) => {
+      const hasValue = teamRows.some(row => Number(row[colPos] || 0) > 0);
+      if (hasValue) maxActiveIdx = sIdx;
+    });
+
+    // 3. 테이블 생성 로직 (위와 동일하나 인덱스만 동적 사용)
+    const table = document.createElement("table");
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
 
