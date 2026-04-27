@@ -1,165 +1,203 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>팀 상세 정보 - MERRY CLIMB FINAL</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    /* 기존 스타일 유지 */
-    body { font-family: 'Pretendard', system-ui, sans-serif; background: linear-gradient(180deg, #4facfe 0%, #00f2fe 40%, #fdfbfb 100%); background-attachment: fixed; color: #1e293b; margin: 0; padding: 20px; min-height: 100vh; }
-    .header-container { max-width: 1200px; margin: 20px auto 10px; text-align: center; }
-    h1 { font-size: 2rem; font-weight: 900; color: #ffffff; text-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 12px; }
-    .team-total-card { background: rgba(255, 255, 255, 0.95); border-radius: 16px; padding: 15px 30px; display: inline-block; margin-bottom: 30px; box-shadow: 0 8px 20px rgba(7, 89, 133, 0.15); border: 2px solid #38bdf8; }
-    .team-total-label { font-size: 0.9rem; font-weight: 800; color: #075985; margin-bottom: 4px; }
-    .team-total-value { font-size: 1.8rem; font-weight: 900; color: #38bdf8; }
-    .table-wrapper { max-width: 1200px; margin: 0 auto; background: #ffffff; border-radius: 20px; padding: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 15px 12px; text-align: center; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
-    th { background: #f8fafc; color: #075985; font-weight: 800; font-size: 0.9rem; border-bottom: 3px solid #38bdf8; }
-    th:first-child, td:first-child { font-weight: 900; color: #0f172a; }
-    /* 개인 총합 열 강조 */
-    th:last-child, td:last-child { background: rgba(56, 189, 248, 0.1); color: #0284c7; font-weight: 900; }
-    .back-btn { display: block; width: fit-content; margin: 40px auto; padding: 12px 32px; background: #075985; color: #ffffff !important; text-decoration: none; font-weight: 800; border-radius: 50px; }
-    .loading { text-align: center; margin-top: 60px; font-weight: 800; color: #075985; }
-  </style>
+  <meta charset="UTF-8" />
+  <title>팀 상세 정보 - MERRY CLIMB FINAL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Round:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ✅ 청량한 그라데이션 및 폰트 통일 */
+    body { 
+      font-family: 'Nanum Gothic Round', sans-serif; 
+      background: linear-gradient(180deg, #4facfe 0%, #00f2fe 40%, #fdfbfb 100%); 
+      background-attachment: fixed; 
+      color: #1e293b; 
+      margin: 0; 
+      padding: 20px; 
+      min-height: 100vh; 
+    }
+    
+    .header-container { max-width: 1200px; margin: 20px auto 10px; text-align: center; }
+    
+    /* ✅ 상단 타이틀 그림자 (시인성 강화) */
+    h1 { 
+      font-size: 2.2rem; 
+      font-weight: 900; 
+      color: #ffffff; 
+      text-shadow: 2px 2px 10px rgba(0,0,0,0.6), 0px 0px 15px rgba(0,0,0,0.2); 
+      margin-bottom: 15px; 
+    }
+
+    .team-total-card { 
+      background: rgba(255, 255, 255, 0.95); 
+      border-radius: 16px; 
+      padding: 15px 30px; 
+      display: inline-block; 
+      margin-bottom: 30px; 
+      box-shadow: 0 8px 20px rgba(7, 89, 133, 0.15); 
+      border: 2px solid #38bdf8; 
+    }
+    .team-total-label { font-size: 0.9rem; font-weight: 800; color: #075985; margin-bottom: 4px; }
+    .team-total-value { font-size: 1.8rem; font-weight: 900; color: #38bdf8; }
+
+    /* ✅ 테이블 디자인 복구 */
+    .table-wrapper { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      background: rgba(255, 255, 255, 0.95); 
+      border-radius: 20px; 
+      padding: 20px; 
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); 
+      overflow-x: auto; 
+      backdrop-filter: blur(10px);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 15px 12px; text-align: center; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+    th { background: #f8fafc; color: #075985; font-weight: 800; font-size: 0.9rem; border-bottom: 3px solid #38bdf8; }
+    th:first-child, td:first-child { font-weight: 900; color: #0f172a; }
+    
+    /* 개인 총합 열 강조 */
+    th:last-child, td:last-child { background: rgba(56, 189, 248, 0.1); color: #0284c7; font-weight: 900; }
+
+    .back-btn { 
+      display: block; 
+      width: fit-content; 
+      margin: 40px auto; 
+      padding: 12px 32px; 
+      background: #075985; 
+      color: #ffffff !important; 
+      text-decoration: none; 
+      font-weight: 800; 
+      border-radius: 50px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .loading { text-align: center; margin-top: 60px; font-weight: 800; color: #ffffff; text-shadow: 1px 1px 5px rgba(0,0,0,0.3); }
+  </style>
 </head>
 <body>
 
-  <div class="header-container">
-    <h1 id="teamName">팀 상세 정보</h1>
-    <div class="team-total-card">
-      <div class="team-total-label">TEAM TOTAL SCORE</div>
-      <div id="teamTotal" class="team-total-value">-</div>
-    </div>
-  </div>
+  <div class="header-container">
+    <h1 id="teamName">팀 상세 정보</h1>
+    <div class="team-total-card">
+      <div class="team-total-label">TEAM TOTAL SCORE</div>
+      <div id="teamTotal" class="team-total-value">-</div>
+    </div>
+  </div>
 
-  <div id="status" class="loading">팀원의 기록을 계산하고 있습니다...</div>
-  
-  <div class="table-wrapper" id="tableContainer" style="display: none;">
-    <div id="tableArea"></div>
-  </div>
+  <div id="status" class="loading">결승전 데이터를 불러오고 있습니다...</div>
+  
+  <div class="table-wrapper" id="tableContainer" style="display: none;">
+    <div id="tableArea"></div>
+  </div>
 
-  <a href="javascript:history.back()" class="back-btn">메인 리더보드로 돌아가기</a>
+  <a href="javascript:history.back()" class="back-btn">← 결승 리더보드로 돌아가기</a>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const teamParam = urlParams.get("team") || "";
-    
-    // ✅ 1. SPREADSHEET_ID 및 DATA 탭 GID 확인
-    const SPREADSHEET_ID = "11yRg8F7b2yIRZFRvfsvzOjHJWxE5tecqYTPkCwEgJqo";
-    const DATA_GID = "0"; // DATA 탭의 GID가 0이 맞는지 시트 주소창에서 꼭 확인하세요!
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${DATA_GID}`;
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const teamParam = urlParams.get("team") || "";
+    
+    // ✅ 결승전용 SPREADSHEET_ID (11yRg8...)
+    const SPREADSHEET_ID = "11yRg8F7b2yIRZFRvfsvzOjHJWxE5tecqYTPkCwEgJqo";
+    const DATA_GID = "0"; 
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${DATA_GID}`;
 
-    document.getElementById("teamName").innerText = "🏆 " + teamParam + " 상세 기록";
+    document.getElementById("teamName").innerText = "🏆 " + teamParam + " 상세 기록";
 
-    async function loadDetail() {
-      try {
-        const cacheBuster = new Date().getTime();
-        const res = await fetch(`${CSV_URL}&cache=${cacheBuster}`);
-        const text = await res.text();
+    async function loadDetail() {
+      try {
+        const cacheBuster = new Date().getTime();
+        const res = await fetch(`${CSV_URL}&cache=${cacheBuster}`);
+        const text = await res.text();
 
-        // ✅ CSV 파싱 로직 개선 (쉼표 및 따옴표 안전하게 처리)
-        const rows = text.replace(/\r/g, "").split("\n")
-          .filter(r => r.trim().length > 0)
-          .map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, "").trim()));
+        const rows = text.replace(/\r/g, "").split("\n")
+          .filter(r => r.trim().length > 0)
+          .map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, "").trim()));
 
-        const header = rows[0]; 
+        const header = rows[0]; 
 
-        // ✅ 2. 열 위치 찾기 (정확한 매칭을 위해 includes 사용)
-        const teamNameIdx = header.findIndex(h => h.includes("팀명"));
-        const nameIdx = header.findIndex(h => h.includes("성명") || h.includes("이름"));
-        const personalTotalIdx = header.findIndex(h => h.includes("총점"));
+        const teamNameIdx = header.findIndex(h => h.includes("팀명"));
+        const nameIdx = header.findIndex(h => h.includes("성명") || h.includes("이름"));
+        const personalTotalIdx = header.findIndex(h => h.includes("총점"));
 
-        if (teamNameIdx === -1 || nameIdx === -1) {
-          throw new Error("필수 열(팀명 또는 성명)을 찾을 수 없습니다.");
-        }
+        if (teamNameIdx === -1 || nameIdx === -1) {
+          throw new Error("필수 열을 찾을 수 없습니다.");
+        }
 
-        // "점수"라는 단어가 포함된 모든 열 추출 (각 문제의 점수)
-        const scoreColIndices = [];
-        header.forEach((h, idx) => {
-          if (h.includes("점수") && !h.includes("총점")) {
-            scoreColIndices.push(idx);
-          }
-        });
+        const scoreColIndices = [];
+        header.forEach((h, idx) => {
+          if (h.includes("점수") && !h.includes("총점")) {
+            scoreColIndices.push(idx);
+          }
+        });
 
-        // 해당 팀 데이터만 필터링
-        let teamRows = rows.filter(row => row[teamNameIdx] === teamParam);
-        
-        if (teamRows.length === 0) {
-          document.getElementById("status").innerText = "❌ '" + teamParam + "' 팀의 데이터를 찾을 수 없습니다.";
-          return;
-        }
+        let teamRows = rows.filter(row => row[teamNameIdx] === teamParam);
+        
+        if (teamRows.length === 0) {
+          document.getElementById("status").innerText = "❌ '" + teamParam + "' 팀의 데이터를 찾을 수 없습니다.";
+          return;
+        }
 
-        // 1. 팀 전체 점수 합산
-        let teamSum = 0;
-        teamRows.forEach(r => teamSum += Number(r[personalTotalIdx] || 0));
-        document.getElementById("teamTotal").innerText = teamSum.toFixed(1);
+        let teamSum = 0;
+        teamRows.forEach(r => teamSum += Number(r[personalTotalIdx] || 0));
+        document.getElementById("teamTotal").innerText = teamSum.toFixed(1);
 
-        // 2. 최대 활성화 문제 인덱스 계산 (오류 수정: maxActiveSectorIdx -> maxActiveIdx)
-        let maxActiveIdx = 0;
-        scoreColIndices.forEach((colPos, sIdx) => {
-          const hasValue = teamRows.some(row => Number(row[colPos] || 0) > 0);
-          if (hasValue) maxActiveIdx = sIdx;
-        });
+        let maxActiveIdx = 0;
+        scoreColIndices.forEach((colPos, sIdx) => {
+          const hasValue = teamRows.some(row => Number(row[colPos] || 0) > 0);
+          if (hasValue) maxActiveIdx = sIdx;
+        });
 
-        // 3. 테이블 생성
-        const table = document.createElement("table");
-        const thead = document.createElement("thead");
-        const headRow = document.createElement("tr");
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const headRow = document.createElement("tr");
 
-        const headers = ["이름"];
-        // 활성화된 문제까지만 헤더 생성
-        for (let i = 0; i <= maxActiveIdx; i++) {
-          headers.push((i + 1) + "번 문제");
-        }
-        headers.push("개인 총점");
+        const headers = ["이름"];
+        for (let i = 0; i <= maxActiveIdx; i++) {
+          headers.push((i + 1) + "번 문제");
+        }
+        headers.push("개인 총점");
 
-        headers.forEach(h => {
-          const th = document.createElement("th");
-          th.innerText = h;
-          headRow.appendChild(th);
-        });
-        thead.appendChild(headRow);
-        table.appendChild(thead);
+        headers.forEach(h => {
+          const th = document.createElement("th");
+          th.innerText = h;
+          headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+        table.appendChild(thead);
 
-        const tbody = document.createElement("tbody");
-        teamRows.forEach(row => {
-          const tr = document.createElement("tr");
-          
-          // 이름
-          const tdName = document.createElement("td");
-          tdName.innerText = row[nameIdx] || "미등록";
-          tr.appendChild(tdName);
+        const tbody = document.createElement("tbody");
+        teamRows.forEach(row => {
+          const tr = document.createElement("tr");
+          const tdName = document.createElement("td");
+          tdName.innerText = row[nameIdx] || "미등록";
+          tr.appendChild(tdName);
 
-          // 문제별 점수
-          for (let i = 0; i <= maxActiveIdx; i++) {
-            const td = document.createElement("td");
-            const score = Number(row[scoreColIndices[i]] || 0);
-            td.innerText = score === 0 ? "-" : score.toFixed(1);
-            tr.appendChild(td);
-          }
+          for (let i = 0; i <= maxActiveIdx; i++) {
+            const td = document.createElement("td");
+            const score = Number(row[scoreColIndices[i]] || 0);
+            td.innerText = score === 0 ? "-" : score.toFixed(1);
+            tr.appendChild(td);
+          }
 
-          // 개인 총점
-          const tdTotal = document.createElement("td");
-          tdTotal.innerText = Number(row[personalTotalIdx] || 0).toFixed(1);
-          tr.appendChild(tdTotal);
+          const tdTotal = document.createElement("td");
+          tdTotal.innerText = Number(row[personalTotalIdx] || 0).toFixed(1);
+          tr.appendChild(tdTotal);
+          tbody.appendChild(tr);
+        });
 
-          tbody.appendChild(tr);
-        });
+        table.appendChild(tbody);
+        document.getElementById("status").style.display = "none";
+        document.getElementById("tableContainer").style.display = "block";
+        document.getElementById("tableArea").innerHTML = "";
+        document.getElementById("tableArea").appendChild(table);
 
-        table.appendChild(tbody);
-        document.getElementById("status").style.display = "none";
-        document.getElementById("tableContainer").style.display = "block";
-        document.getElementById("tableArea").innerHTML = "";
-        document.getElementById("tableArea").appendChild(table);
+      } catch (e) {
+        document.getElementById("status").innerText = "⚠️ 데이터를 가져오는 도중 오류가 발생했습니다.";
+        console.error("Detail Error:", e);
+      }
+    }
 
-      } catch (e) {
-        document.getElementById("status").innerText = "⚠️ 데이터를 가져오는 도중 오류가 발생했습니다.";
-        console.error("Detail Error:", e);
-      }
-    }
-
-    loadDetail();
-  </script>
+    loadDetail();
+  </script>
 </body>
 </html>
