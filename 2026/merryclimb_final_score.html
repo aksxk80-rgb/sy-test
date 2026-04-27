@@ -52,12 +52,11 @@
     .board-status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; }
     .main-label { font-size: 1.1rem; font-weight: 800; color: #ffffff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
     
-    /* ✅ LIVE UPDATING: 빨간색으로 변경 */
     .live-indicator { 
       display: flex; 
       align-items: center; 
       gap: 6px; 
-      color: #ff4d4d; /* 쨍한 빨간색 */
+      color: #ff4d4d; 
       font-weight: 800; 
       font-size: 0.85rem; 
       text-shadow: 0 1px 5px rgba(0,0,0,0.3); 
@@ -85,6 +84,7 @@
       transition: transform 0.2s ease; 
       cursor: pointer; 
     }
+    .card:active { transform: scale(0.98); }
     
     .rank-1-card { border: 3px solid #fbbf24 !important; }
     .rank-2-card { border: 3px solid #cbd5e1 !important; }
@@ -153,7 +153,8 @@
           rank: Number(cols[rankIdx]),
           displayName: cols[nameIdx],
           total: cols[totalIdx] || "0",
-          tValue: cols[tIdx] || "0"
+          tValue: cols[tIdx] || "0",
+          teamKeyName: cols[nameIdx] // 상세 페이지 이동을 위한 키
         })).filter(t => t.displayName);
 
         document.getElementById("status").style.display = "none";
@@ -169,6 +170,12 @@
       filtered.forEach(item => {
         const card = document.createElement("div");
         card.className = "card";
+        
+        // 상세 페이지 이동 기능 복구 ✅
+        card.onclick = () => {
+          window.location.href = `merryclimb_final_detail.html?team=${encodeURIComponent(item.teamKeyName)}`;
+        };
+
         if (item.rank === 1) card.classList.add("rank-1-card");
         else if (item.rank === 2) card.classList.add("rank-2-card");
         else if (item.rank === 3) card.classList.add("rank-3-card");
